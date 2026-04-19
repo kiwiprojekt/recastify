@@ -1,0 +1,35 @@
+services:
+  recastify:
+    image: ghcr.io/kiwiprojekt/recastify:main
+    platform: linux/amd64
+    container_name: recastify
+    restart: unless-stopped
+    network_mode: host
+    cap_add:
+      - SYS_NICE
+    command: ["all-in-one"]
+    environment:
+      # AirPlay receiver name (shows up in iOS/macOS AirPlay menu)
+      AIRPLAY_NAME: "Recastify"
+
+      # Icecast stream settings
+      ICECAST_PORT: "8100"
+      ICECAST_MOUNT: "/stream"
+      ICECAST_SOURCE_PASSWORD: "changeme"
+      ICECAST_ADMIN_PASSWORD: "changeme"
+      # Bridge ID must match the mount path (without leading slash)
+      BRIDGE_ID: "stream"
+
+      # Audio encoding
+      AUDIO_BITRATE: "320k"
+      # Path where config.yaml is persisted
+      CONFIG_PATH: "/data/config.yaml"
+    volumes:
+      - recastify-config:/data
+    logging:
+      options:
+        max-size: "200k"
+        max-file: "5"
+
+volumes:
+  recastify-config:

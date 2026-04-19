@@ -1,0 +1,133 @@
+services:
+  # ── Mosquitto MQTT broker ────────────────────────────────────
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: airplay-mqtt
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - mqtt-data:/mosquitto/data
+    command: mosquitto -c /dev/null -p 1883 -v
+    logging:
+      options:
+        max-size: "50k"
+        max-file: "3"
+
+  # ── Icecast: HTTP audio streaming server ──────────────────────
+  icecast:
+    image: infiniteproject/icecast:latest
+    container_name: airplay-icecast
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      ICECAST_SOURCE_PASSWORD: "${ICECAST_SOURCE_PASSWORD:-changeme}"
+      ICECAST_ADMIN_PASSWORD: "${ICECAST_ADMIN_PASSWORD:-changeme}"
+      ICECAST_RELAY_PASSWORD: "relay"
+      ICECAST_HOSTNAME: "localhost"
+      ICECAST_MAX_CLIENTS: "20"
+      ICECAST_MAX_SOURCES: "10"
+    logging:
+      options:
+        max-size: "100k"
+        max-file: "3"
+
+  # ── Controller: C# web server + API ──────────────────────────
+  controller:
+    build:
+      context: .
+      dockerfile: controller/Dockerfile.dev
+    container_name: airplay-controller
+    restart: unless-stopped
+    depends_on:
+      - icecast
+      - mqtt
+    ports:
+      - "3000:3000"
+    environment:
+      ICECAST_HOST: "icecast"
+      ICECAST_PORT: "8000"
+      MQTT_HOST: "mqtt"
+      MQTT_PORT: "1883"
+      WEB_UI_PORT: "3000"
+      CONFIG_PATH: "/app/config.yaml"
+    volumes:
+      - ./config.yaml.example:/app/config.yaml:ro
+    logging:
+      options:
+        max-size: "100k"
+        max-file: "3"
+
+  # ── Bridge: Living Room ──────────────────────────────────────
+  bridge-living-room:
+    build: .
+    container_name: bridge-living-room
+    restart: unless-stopped
+    depends_on:
+      - icecast
+      - mqtt
+    cap_add:
+      - SYS_NICE
+    networks:
+      airplay:
+        ipv4_address: 192.168.1.101
+    volumes:
+      - ./config/shairport-sync.conf.template:/opt/config/shairport-sync.conf.template:ro
+    environment:
+      AIRPLAY_NAME: "Living Room"
+      ICECAST_HOST: "icecast"
+      ICECAST_PORT: "8000"
+      ICECAST_SOURCE_PASSWORD: "${ICECAST_SOURCE_PASSWORD:-changeme}"
+      ICECAST_MOUNT: "/living-room"
+      AUDIO_BITRATE: "320k"
+      BRIDGE_ID: "living-room"
+      CONTROLLER_URL: "controller:3000"
+      MQTT_HOST: "mqtt"
+    logging:
+      options:
+        max-size: "200k"
+        max-file: "5"
+
+  # ── Bridge: Kitchen ──────────────────────────────────────────
+  bridge-kitchen:
+    build: .
+    container_name: bridge-kitchen
+    restart: unless-stopped
+    depends_on:
+      - icecast
+      - mqtt
+    cap_add:
+      - SYS_NICE
+    networks:
+      airplay:
+        ipv4_address: 192.168.1.102
+    volumes:
+      - ./config/shairport-sync.conf.template:/opt/config/shairport-sync.conf.template:ro
+    environment:
+      AIRPLAY_NAME: "Kitchen"
+      ICECAST_HOST: "icecast"
+      ICECAST_PORT: "8000"
+      ICECAST_SOURCE_PASSWORD: "${ICECAST_SOURCE_PASSWORD:-changeme}"
+      ICECAST_MOUNT: "/kitchen"
+      AUDIO_BITRATE: "256k"
+      BRIDGE_ID: "kitchen"
+      CONTROLLER_URL: "controller:3000"
+      MQTT_HOST: "mqtt"
+    logging:
+      options:
+        max-size: "200k"
+        max-file: "5"
+
+networks:
+  airplay:
+    driver: ipvlan
+    driver_opts:
+      parent: eth0
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+          gateway: 192.168.1.1
+
+volumes:
+  mqtt-data:

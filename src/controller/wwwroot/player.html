@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Recastify">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <title>Recastify Player</title>
+    <style>
+        body { background:#000; color:#fff; font-family:-apple-system,Helvetica,Arial,sans-serif; padding:16px; margin:0;
+               display:-webkit-box; display:flex; -webkit-box-orient:vertical; flex-direction:column;
+               min-height:100vh; box-sizing:border-box; }
+        button { display:block; width:100%; padding:16px; margin:0; font-size:18px; font-weight:bold;
+                 border:none; border-radius:8px; box-sizing:border-box; }
+        .hidden { display:none !important; }
+        #hero { width:200px; height:200px; margin:32px auto 16px; position:relative; }
+        #cover { width:200px; height:200px; border-radius:8px; background:#222; display:block; object-fit:cover; }
+        #btn-fetch { background:#333; color:#fff; width:200px; height:200px; border-radius:8px; font-size:20px; }
+        #btn-play { background:#0f0; color:#000; width:200px; height:200px; border-radius:8px; font-size:22px; }
+        #meta { text-align:center; margin:0 0 auto; }
+        #status { color:#888; font-size:14px; margin:8px 0; text-align:center; }
+        #np-title { font-size:18px; font-weight:bold; margin:0 0 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        #np-artist { font-size:15px; color:#aaa; margin:0 0 2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        #np-album { font-size:13px; color:#666; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        #btn-stop { background:#333; color:#f55; padding:14px; border-radius:8px; margin:16px 0 8px; }
+    </style>
+</head>
+<body>
+    <div id="hero">
+        <button id="btn-fetch" onclick="tapFetch()">CONNECT</button>
+        <button id="btn-play" class="hidden" onclick="tapPlay()">PLAY</button>
+        <img id="cover" class="hidden" src="" alt="">
+    </div>
+    <div id="meta">
+        <div id="status">Tap Connect to start.</div>
+        <p id="np-title"></p>
+        <p id="np-artist"></p>
+        <p id="np-album"></p>
+    </div>
+    <button id="btn-stop" class="hidden" onclick="tapStop()">DISCONNECT</button>
+
+    <audio id="audio" webkit-playsinline playsinline></audio>
+
+    <script>
+        var audio = document.getElementById('audio');
+        var btnFetch = document.getElementById('btn-fetch');
+        var btnPlay = document.getElementById('btn-play');
+        var btnStop = document.getElementById('btn-stop');
+        var coverEl = document.getElementById('cover');
+        var statusEl = document.getElementById('status');
+        var titleEl = document.getElementById('np-title');
+        var artistEl = document.getElementById('np-artist');
+        var albumEl = document.getElementById('np-album');
+        var streamUrl = '';
+        var bridgeId = 'default';
+        var lastAlbum = '';
+        var pollTimer = null;
+        var isPlaying = false;
+        var placeholderCover = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect fill="#222" width="200" height="200"/><polygon fill="#555" points="80,50 80,150 150,100"/></svg>');
+
+        // parse ?bridge=xxx
+        var qs = location.search.replace('?','').split('&');
+        for (var i = 0; i < qs.length; i++) {
+            var kv = qs[i].split('=');
+            if (kv[0] === 'bridge') bridgeId = decodeURIComponent(kv[1]);
+        }
+
+        function showHero(which) {
+            btnFetch.className = which === 'fetch' ? '' : 'hidden';
+            btnPlay.className = which === 'play' ? '' : 'hidden';
+            coverEl.className = which === 'cover' ? '' : 'hidden';
+        }
+
+        function tapPlay() {
+            if (!streamUrl) { return; }
+            // Show cover + disconnect immediately, don't wait for 'playing' event
+            statusEl.textContent = 'Buffering...';
+            isPlaying = true;
+            showHero('cover');
+            coverEl.src = placeholderCover;
+            lastAlbum = '';
+            btnStop.className = '';
+            // Use same-origin proxy to avoid cross-origin audio muting in iOS PWA
+            audio.pause();
+            audio.src = '';
+            audio.load();
+            audio.src = streamUrl;
+            audio.play();
+            pollNowPlaying();
+        }
+
+        function tapStop() {
+            audio.pause();
+            audio.src = '';
+            audio.load();
+            isPlaying = false;
+            btnStop.className = 'hidden';
+            showHero('play');
+            statusEl.textContent = 'Ready — ' + bridgeId;
+            titleEl.textContent = '';
+            artistEl.textContent = '';
+            albumEl.textContent = '';
+        }
+
+        audio.addEventListener('playing', function() {
+            statusEl.textContent = 'Playing';
+        });
+        audio.addEventListener('waiting', function() {
+            if (isPlaying) statusEl.textContent = 'Buffering...';
+        });
+        audio.addEventListener('error', function() {
+            if (!isPlaying) return;
+            statusEl.textContent = 'Playback error';
+            isPlaying = false;
+            btnStop.className = 'hidden';
+            showHero('play');
+        });
+
+        function tapFetch() {
+            statusEl.textContent = 'Connecting...';
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/bridges', true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState !== 4) return;
+                if (xhr.status !== 200) { statusEl.textContent = 'Connection failed'; return; }
+                var data;
+                try { data = JSON.parse(xhr.responseText); } catch(e) { statusEl.textContent = 'Bad response'; return; }
+                var bridge = null;
+                for (var i = 0; i < data.bridges.length; i++) {
+                    if (data.bridges[i].id === bridgeId) bridge = data.bridges[i];
+                }
+                if (!bridge && data.bridges.length > 0) {
+                    bridge = data.bridges[0];
+                    bridgeId = bridge.id;
+                }
+                if (bridge) {
+                    // Use same-origin stream proxy instead of cross-origin Icecast URL
+                    streamUrl = '/api/bridges/' + encodeURIComponent(bridge.id) + '/stream';
+                    statusEl.textContent = 'Ready — ' + bridgeId;
+                    showHero('play');
+                    startPolling();
+                } else {
+                    statusEl.textContent = 'No bridges found';
+                }
+            };
+            xhr.send();
+        }
+
+        function showNowPlaying(np) {
+            if (!np || (!np.title && !np.artist)) {
+                titleEl.textContent = '';
+                artistEl.textContent = '';
+                albumEl.textContent = '';
+                if (isPlaying) coverEl.src = placeholderCover;
+                lastAlbum = '';
+                return;
+            }
+            titleEl.textContent = np.title || '';
+            artistEl.textContent = np.artist || '';
+            albumEl.textContent = np.album || '';
+            var currentAlbum = (np.album || '') + '|' + (np.artist || '');
+            if (currentAlbum !== lastAlbum) {
+                lastAlbum = currentAlbum;
+                coverEl.src = '/api/bridges/' + encodeURIComponent(bridgeId) + '/art?t=' + Date.now();
+                coverEl.onerror = function() { coverEl.src = placeholderCover; };
+            }
+        }
+
+        function pollNowPlaying() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/bridges', true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState !== 4 || xhr.status !== 200) return;
+                var data;
+                try { data = JSON.parse(xhr.responseText); } catch(e) { return; }
+                for (var i = 0; i < data.bridges.length; i++) {
+                    if (data.bridges[i].id === bridgeId) {
+                        showNowPlaying(data.bridges[i].now_playing);
+                        return;
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        function startPolling() {
+            if (pollTimer) return;
+            pollTimer = setInterval(pollNowPlaying, 3000);
+        }
+    </script>
+</body>
+</html>

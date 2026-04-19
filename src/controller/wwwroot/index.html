@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Recastify</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <h1>Recastify</h1>
+    </header>
+
+    <main id="bridge-list" class="bridge-list">
+        <!-- Populated by app.js -->
+    </main>
+
+    <audio id="player" preload="none"></audio>
+
+    <div id="now-playing-bar" class="now-playing-bar hidden">
+        <div class="now-playing-info">
+            <span id="np-status" class="np-status"></span>
+            <span id="np-name" class="np-name"></span>
+        </div>
+        <button id="np-stop" class="np-stop" type="button">Stop</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

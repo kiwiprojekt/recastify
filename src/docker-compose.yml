@@ -1,0 +1,87 @@
+services:
+  # ── Mosquitto MQTT broker ─────────────────────────────────────
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: airplay-mqtt
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    command: mosquitto -c /dev/null -p 1883
+    logging:
+      options:
+        max-size: "50k"
+        max-file: "3"
+
+  # ── Icecast: HTTP audio streaming server ──────────────────────
+  icecast:
+    image: infiniteproject/icecast:latest
+    container_name: airplay-icecast
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      ICECAST_SOURCE_PASSWORD: "${ICECAST_SOURCE_PASSWORD:-hackme}"
+      ICECAST_ADMIN_PASSWORD: "${ICECAST_ADMIN_PASSWORD:-admin}"
+      ICECAST_RELAY_PASSWORD: "relay"
+      ICECAST_HOSTNAME: "localhost"
+      ICECAST_MAX_CLIENTS: "10"
+      ICECAST_MAX_SOURCES: "2"
+    logging:
+      options:
+        max-size: "100k"
+        max-file: "3"
+
+  # ── Bridge: AirPlay receiver → PCM pipe → ffmpeg → Icecast ───
+  bridge:
+    build: .
+    container_name: recastify
+    restart: unless-stopped
+    depends_on:
+      - icecast
+      - mqtt
+    network_mode: host
+    cap_add:
+      - SYS_NICE
+    volumes:
+      - ./config/shairport-sync.conf.template:/opt/config/shairport-sync.conf.template:ro
+    environment:
+      ICECAST_HOST: "localhost"
+      ICECAST_PORT: "8000"
+      ICECAST_SOURCE_PASSWORD: "${ICECAST_SOURCE_PASSWORD:-hackme}"
+      ICECAST_MOUNT: "${ICECAST_MOUNT:-/stream}"
+      AUDIO_BITRATE: "${AUDIO_BITRATE:-320k}"
+      AIRPLAY_NAME: "${AIRPLAY_NAME:-Recastify}"
+      BRIDGE_ID: "default"
+      MQTT_HOST: "localhost"
+      MQTT_PORT: "1883"
+      CONTROLLER_URL: "localhost:3000"
+    logging:
+      options:
+        max-size: "200k"
+        max-file: "5"
+
+  # ── Controller: C# web server + API ──────────────────────────
+  controller:
+    build:
+      context: .
+      dockerfile: controller/Dockerfile.dev
+    container_name: airplay-controller
+    restart: unless-stopped
+    depends_on:
+      - icecast
+      - mqtt
+    ports:
+      - "3000:3000"
+    environment:
+      ICECAST_HOST: "icecast"
+      ICECAST_PORT: "8000"
+      AIRPLAY_NAME: "${AIRPLAY_NAME:-Recastify}"
+      ICECAST_MOUNT: "${ICECAST_MOUNT:-/stream}"
+      AUDIO_BITRATE: "${AUDIO_BITRATE:-320k}"
+      MQTT_HOST: "mqtt"
+      MQTT_PORT: "1883"
+      WEB_UI_PORT: "3000"
+    logging:
+      options:
+        max-size: "100k"
+        max-file: "3"

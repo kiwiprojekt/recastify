@@ -1,0 +1,35 @@
+# Recastify Configuration
+icecast:
+  host: icecast
+  port: 8000
+  source_password: "changeme"
+  admin_password: "changeme"
+  max_clients: 20
+
+web_ui:
+  port: 3000
+
+network:
+  mode: ipvlan
+  parent_interface: eth0
+  subnet: "192.168.1.0/24"
+  gateway: "192.168.1.1"
+
+bridges:
+  - name: "Living Room"
+    mount: "/living-room"
+    ip: "192.168.1.101"
+    bitrate: "320k"
+    enabled: true
+
+  - name: "Kitchen"
+    mount: "/kitchen"
+    ip: "192.168.1.102"
+    bitrate: "256k"
+    enabled: true
+
+  - name: "Workout"
+    mount: "/workout"
+    ip: "192.168.1.103"
+    bitrate: "192k"
+    enabled: false

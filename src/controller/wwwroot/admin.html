@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <title>Recastify — Admin</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 44px;
+            padding: 0 16px;
+            background: var(--card-bg);
+            border-bottom: 1px solid #333;
+        }
+        .admin-header h1 {
+            font-size: 17px;
+            font-weight: 600;
+        }
+        .admin-header a {
+            color: var(--accent-green);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .admin-body {
+            padding: 12px 16px;
+            padding-bottom: 120px;
+        }
+        .admin-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .admin-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .admin-card-header .bridge-name {
+            flex: 1;
+        }
+        .admin-card-detail {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .admin-card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .btn-sm {
+            min-height: 36px;
+            min-width: 36px;
+            padding: 6px 14px;
+            font-size: 13px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-edit { background: #2c2c2e; color: var(--text-primary); }
+        .btn-start { background: var(--accent-green); color: #000; }
+        .btn-stop { background: var(--accent-yellow); color: #000; }
+        .btn-delete { background: #ff3b30; color: #fff; }
+        .btn-add {
+            display: block;
+            width: 100%;
+            min-height: 44px;
+            background: var(--accent-green);
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .modal h2 {
+            font-size: 17px;
+            margin-bottom: 16px;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            min-height: 36px;
+            padding: 8px 12px;
+            background: #2c2c2e;
+            border: 1px solid #3a3a3c;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: inherit;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .modal-actions button {
+            flex: 1;
+            min-height: 44px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .btn-cancel { background: #2c2c2e; color: var(--text-primary); }
+        .btn-save { background: var(--accent-green); color: #000; }
+        .icecast-status {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <header class="admin-header">
+        <h1>Recastify Manager</h1>
+        <a href="/">iPod View</a>
+    </header>
+
+    <div class="admin-body">
+        <button class="btn-add" id="btn-add" type="button">+ Add Bridge</button>
+
+        <div id="bridge-list">
+            <!-- Populated by JS -->
+        </div>
+
+        <div id="icecast-status" class="icecast-status"></div>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <h2 id="modal-title">Add Bridge</h2>
+            <div class="form-group">
+                <label for="f-name">AirPlay Name</label>
+                <input type="text" id="f-name" placeholder="Living Room">
+            </div>
+            <div class="form-group">
+                <label for="f-mount">Icecast Mount</label>
+                <input type="text" id="f-mount" placeholder="/living-room">
+            </div>
+            <div class="form-group">
+                <label for="f-ip">Container IP (ipvlan)</label>
+                <input type="text" id="f-ip" placeholder="192.168.1.101">
+            </div>
+            <div class="form-group">
+                <label for="f-bitrate">MP3 Bitrate</label>
+                <select id="f-bitrate">
+                    <option value="128k">128k</option>
+                    <option value="192k">192k</option>
+                    <option value="256k">256k</option>
+                    <option value="320k" selected>320k</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" type="button" id="btn-cancel">Cancel</button>
+                <button class="btn-save" type="button" id="btn-save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var bridgeListEl = document.getElementById('bridge-list');
+        var icecastStatusEl = document.getElementById('icecast-status');
+        var modalOverlay = document.getElementById('modal-overlay');
+        var modalTitle = document.getElementById('modal-title');
+        var fName = document.getElementById('f-name');
+        var fMount = document.getElementById('f-mount');
+        var fIp = document.getElementById('f-ip');
+        var fBitrate = document.getElementById('f-bitrate');
+        var btnAdd = document.getElementById('btn-add');
+        var btnCancel = document.getElementById('btn-cancel');
+        var btnSave = document.getElementById('btn-save');
+
+        var editingId = null;
+        var refreshTimer = null;
+
+        function fetchBridges() {
+            fetch('/api/bridges')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    renderBridges(data.bridges);
+                    renderIcecastStatus(data.bridges);
+                })
+                .catch(function() {});
+        }
+
+        function renderBridges(bridges) {
+            var html = '';
+            for (var i = 0; i < bridges.length; i++) {
+                var b = bridges[i];
+                var stateClass = b.state === 'playing' ? 'playing' : (b.state === 'paused' || b.state === 'starting' ? 'paused' : 'offline');
+                var stateLabel = b.state || 'offline';
+                html += '<div class="admin-card">';
+                html += '<div class="admin-card-header">';
+                html += '<div class="bridge-status-dot ' + stateClass + '"></div>';
+                html += '<span class="bridge-name">' + escapeHtml(b.name) + '</span>';
+                html += '<span class="bridge-state-label ' + stateClass + '">' + stateLabel + '</span>';
+                html += '</div>';
+                html += '<div class="admin-card-detail">Mount: ' + escapeHtml(b.mount) + '</div>';
+                if (b.ip) html += '<div class="admin-card-detail">IP: ' + escapeHtml(b.ip) + '</div>';
+                html += '<div class="admin-card-detail">Bitrate: ' + escapeHtml(b.bitrate) + ' &middot; Listeners: ' + b.listeners + '</div>';
+                html += '<div class="admin-card-actions">';
+                html += '<button class="btn-sm btn-edit" onclick="editBridge(\'' + escapeAttr(b.id) + '\')">Edit</button>';
+                if (b.state === 'offline' || b.state === 'paused') {
+                    html += '<button class="btn-sm btn-start" onclick="startBridge(\'' + escapeAttr(b.id) + '\')">Start</button>';
+                } else {
+                    html += '<button class="btn-sm btn-stop" onclick="stopBridge(\'' + escapeAttr(b.id) + '\')">Stop</button>';
+                }
+                html += '<button class="btn-sm btn-delete" onclick="deleteBridge(\'' + escapeAttr(b.id) + '\')">Delete</button>';
+                html += '</div>';
+                html += '</div>';
+            }
+            bridgeListEl.innerHTML = html;
+        }
+
+        function renderIcecastStatus(bridges) {
+            var active = 0;
+            var totalListeners = 0;
+            for (var i = 0; i < bridges.length; i++) {
+                if (bridges[i].state === 'playing' || bridges[i].state === 'starting') active++;
+                totalListeners += bridges[i].listeners || 0;
+            }
+            icecastStatusEl.textContent = 'Sources: ' + active + '/' + bridges.length + ' active \u00B7 Listeners: ' + totalListeners + ' total';
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function escapeAttr(str) {
+            if (!str) return '';
+            return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        // Modal
+        function openModal(title, bridge) {
+            modalTitle.textContent = title;
+            fName.value = bridge ? bridge.name : '';
+            fMount.value = bridge ? bridge.mount : '';
+            fIp.value = bridge ? (bridge.ip || '') : '';
+            fBitrate.value = bridge ? bridge.bitrate : '320k';
+            editingId = bridge ? bridge.id : null;
+            modalOverlay.classList.add('active');
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            editingId = null;
+        }
+
+        btnAdd.addEventListener('click', function() {
+            openModal('Add Bridge', null);
+        });
+
+        btnCancel.addEventListener('click', function() {
+            closeModal();
+        });
+
+        btnSave.addEventListener('click', function() {
+            var body = {
+                name: fName.value,
+                mount: fMount.value,
+                ip: fIp.value || null,
+                bitrate: fBitrate.value,
+                enabled: true
+            };
+
+            if (editingId) {
+                fetch('/api/bridges/' + encodeURIComponent(editingId), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                }).then(function() {
+                    closeModal();
+                    fetchBridges();
+                });
+            } else {
+                fetch('/api/bridges', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                }).then(function() {
+                    closeModal();
+                    fetchBridges();
+                });
+            }
+        });
+
+        function editBridge(id) {
+            fetch('/api/bridges')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    for (var i = 0; i < data.bridges.length; i++) {
+                        if (data.bridges[i].id === id) {
+                            openModal('Edit Bridge', data.bridges[i]);
+                            return;
+                        }
+                    }
+                });
+        }
+
+        function deleteBridge(id) {
+            if (!confirm('Delete bridge "' + id + '"?')) return;
+            fetch('/api/bridges/' + encodeURIComponent(id), {
+                method: 'DELETE'
+            }).then(function() {
+                fetchBridges();
+            });
+        }
+
+        function startBridge(id) {
+            fetch('/api/bridges/' + encodeURIComponent(id) + '/start', {
+                method: 'POST'
+            }).then(function() {
+                fetchBridges();
+            });
+        }
+
+        function stopBridge(id) {
+            fetch('/api/bridges/' + encodeURIComponent(id) + '/stop', {
+                method: 'POST'
+            }).then(function() {
+                fetchBridges();
+            });
+        }
+
+        // Initialize
+        fetchBridges();
+        refreshTimer = setInterval(fetchBridges, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+// Shairport Sync — Recastify Configuration
+// Output: raw PCM to named pipe for ffmpeg to consume
+
+general = {
+    name = "${AIRPLAY_NAME}";
+    output_backend = "pipe";
+};
+
+pipe = {
+    name = "/tmp/shairport-sync-audio";
+};
+
+sessioncontrol = {
+    run_this_before_play_begins = "/opt/hooks/on_play_start.sh";
+    run_this_after_play_ends = "/opt/hooks/on_play_stop.sh";
+    active_state_timeout = 10.0;
+};
+
+mqtt = {
+    enabled = "yes";
+    hostname = "${MQTT_HOST}";
+    port = 1883;
+    topic = "airplay/${BRIDGE_ID}";
+    publish_parsed = "yes";
+    publish_cover = "yes";
+    publish_retain = "yes";
+    empty_payload_substitute = "--";
+};

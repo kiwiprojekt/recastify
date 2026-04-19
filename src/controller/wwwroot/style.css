@@ -1,0 +1,263 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #0a0a0a;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-text-size-adjust: 100%;
+    min-height: 100vh;
+    padding-bottom: 0;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 16px;
+    background: #1a1a1a;
+    border-bottom: 1px solid #333;
+}
+
+.header h1 {
+    font-size: 17px;
+    font-weight: 600;
+}
+
+/* Bridge list */
+.bridge-list {
+    padding: 12px 16px;
+    padding-bottom: 80px;
+}
+
+.bridge-card {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.bridge-card > * + * {
+    margin-top: 8px;
+}
+
+.bridge-card-header {
+    display: flex;
+    align-items: center;
+}
+
+.bridge-status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-right: 10px;
+}
+
+.bridge-status-dot.playing {
+    background: #34c759;
+    box-shadow: 0 0 6px #34c759;
+}
+
+.bridge-status-dot.paused {
+    background: #ffcc00;
+}
+
+.bridge-status-dot.offline {
+    background: #555555;
+}
+
+.bridge-name {
+    font-size: 17px;
+    font-weight: 600;
+    flex: 1;
+    margin-right: 10px;
+}
+
+.bridge-state-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.bridge-state-label.playing {
+    color: #34c759;
+    background: rgba(52, 199, 89, 0.15);
+}
+
+.bridge-state-label.paused {
+    color: #ffcc00;
+    background: rgba(255, 204, 0, 0.15);
+}
+
+.bridge-state-label.offline {
+    color: #555555;
+    background: rgba(85, 85, 85, 0.15);
+}
+
+.bridge-subtitle {
+    font-size: 14px;
+    color: #a0a0a0;
+}
+
+.bridge-actions {
+    display: flex;
+    margin-top: 4px;
+}
+
+.bridge-actions > * + * {
+    margin-left: 8px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn-listen {
+    background: #34c759;
+    color: #000;
+    flex: 1;
+}
+
+.btn-listen:active {
+    opacity: 0.7;
+}
+
+.btn-listen.paused-btn {
+    background: #ffcc00;
+    color: #000;
+}
+
+.btn-listen.offline-btn {
+    background: #555555;
+    color: #ffffff;
+}
+
+/* Now playing bar */
+.now-playing-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #1a1a1a;
+    border-top: 1px solid #333;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    z-index: 10;
+}
+
+.now-playing-bar.hidden {
+    display: none;
+}
+
+.now-playing-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-right: 12px;
+}
+
+.now-playing-info > * + * {
+    margin-top: 2px;
+}
+
+.np-status {
+    font-size: 12px;
+    color: #a0a0a0;
+}
+
+.np-name {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.np-stop {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid #555555;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Waiting animation */
+@-webkit-keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+.waiting-dots {
+    display: inline-block;
+}
+
+.waiting-dots span {
+    -webkit-animation: pulse 1.4s infinite;
+            animation: pulse 1.4s infinite;
+    font-size: 18px;
+}
+
+.waiting-dots span:nth-child(2) {
+    -webkit-animation-delay: 0.2s;
+            animation-delay: 0.2s;
+}
+
+.waiting-dots span:nth-child(3) {
+    -webkit-animation-delay: 0.4s;
+            animation-delay: 0.4s;
+}
+
+.btn-retry {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 8px 24px;
+    background: #34c759;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn-retry:active {
+    opacity: 0.7;
+}

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Debug Player</title>
+    <style>
+        body { background:#000; color:#0f0; font-family:monospace; font-size:13px; padding:8px; margin:0; }
+        button { display:block; width:100%; padding:16px; margin:8px 0; font-size:18px; font-weight:bold;
+                 background:#0f0; color:#000; border:none; border-radius:6px; }
+        button.red { background:#f00; color:#fff; }
+        button.grey { background:#555; color:#fff; }
+        #log { white-space:pre-wrap; word-break:break-all; margin-top:8px; border-top:1px solid #0f0; padding-top:8px; }
+        .ts { color:#888; }
+        .err { color:#f44; }
+        .ok { color:#4f4; }
+        .info { color:#ff0; }
+        #state { background:#111; padding:8px; border-radius:4px; margin:8px 0; }
+    </style>
+</head>
+<body>
+    <div id="state">Loading...</div>
+    <button id="btn-play" onclick="tapPlay()">PLAY</button>
+    <button class="grey" onclick="tapFetch()">FETCH API</button>
+    <button class="grey" onclick="tapPing()">PING STREAM URL</button>
+    <button class="red" onclick="clearLog()">CLEAR LOG</button>
+    <div id="log"></div>
+
+    <audio id="audio"></audio>
+
+    <script>
+        var audio = document.getElementById('audio');
+        var logEl = document.getElementById('log');
+        var stateEl = document.getElementById('state');
+        var streamUrl = '';
+        var bridgeId = 'default';
+
+        // parse ?bridge=xxx
+        var qs = location.search.replace('?','').split('&');
+        for (var i = 0; i < qs.length; i++) {
+            var kv = qs[i].split('=');
+            if (kv[0] === 'bridge') bridgeId = decodeURIComponent(kv[1]);
+        }
+
+        function ts() { var d = new Date(); return '[' + d.getHours() + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + '] '; }
+        function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+        function log(msg, cls) {
+            var line = document.createElement('div');
+            line.className = cls || '';
+            line.innerHTML = '<span class="ts">' + ts() + '</span>' + escHtml(msg);
+            logEl.insertBefore(line, logEl.firstChild);
+        }
+
+        function escHtml(s) {
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        function clearLog() { logEl.innerHTML = ''; }
+
+        function updateState() {
+            var ns = ['EMPTY','IDLE','LOADING','NO_SOURCE'];
+            var rs = ['HAVE_NOTHING','HAVE_METADATA','HAVE_CURRENT_DATA','HAVE_FUTURE_DATA','HAVE_ENOUGH_DATA'];
+            var err = audio.error ? 'ERR ' + audio.error.code : 'no error';
+            stateEl.innerHTML =
+                'bridge: ' + bridgeId + '\n' +
+                'streamUrl: ' + (streamUrl || '(none)') + '\n' +
+                'network: ' + (ns[audio.networkState] || audio.networkState) + '\n' +
+                'ready: ' + (rs[audio.readyState] || audio.readyState) + '\n' +
+                'paused: ' + audio.paused + '  volume: ' + audio.volume + '\n' +
+                'error: ' + err;
+        }
+
+        // wire all audio events
+        var audioEvents = ['abort','canplay','canplaythrough','durationchange','emptied',
+            'ended','error','loadeddata','loadedmetadata','loadstart','pause',
+            'play','playing','progress','ratechange','seeked','seeking',
+            'stalled','suspend','timeupdate','volumechange','waiting'];
+        for (var ei = 0; ei < audioEvents.length; ei++) {
+            (function(evt) {
+                audio.addEventListener(evt, function() {
+                    var cls = (evt === 'error') ? 'err' : (evt === 'playing') ? 'ok' : '';
+                    var extra = '';
+                    if (evt === 'error' && audio.error) extra = ' code=' + audio.error.code;
+                    log('audio.' + evt + extra, cls);
+                    updateState();
+                });
+            })(audioEvents[ei]);
+        }
+
+        function tapPlay() {
+            log('--- TAP PLAY ---', 'info');
+            if (!streamUrl) {
+                log('streamUrl empty! Fetch API first.', 'err');
+                return;
+            }
+            log('pause()');
+            audio.pause();
+            log('src = ""');
+            audio.src = '';
+            log('load()');
+            audio.load();
+            log('src = ' + streamUrl);
+            audio.src = streamUrl;
+            log('play()');
+            var ret = audio.play();
+            log('play() returned: ' + (ret === undefined ? 'undefined (iOS)' : String(ret)));
+            updateState();
+        }
+
+        function tapFetch() {
+            log('--- FETCH /api/bridges ---', 'info');
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/bridges', true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState !== 4) return;
+                log('XHR status: ' + xhr.status);
+                if (xhr.status !== 200) { log('FAIL: ' + xhr.responseText, 'err'); return; }
+                var data;
+                try { data = JSON.parse(xhr.responseText); } catch(e) { log('JSON parse error: ' + e, 'err'); return; }
+                log('bridges count: ' + data.bridges.length);
+                var bridge = null;
+                for (var i = 0; i < data.bridges.length; i++) {
+                    log('  [' + i + '] id=' + data.bridges[i].id + ' state=' + data.bridges[i].state + ' url=' + data.bridges[i].stream_url);
+                    if (data.bridges[i].id === bridgeId) bridge = data.bridges[i];
+                }
+                if (bridge) {
+                    streamUrl = bridge.stream_url || '';
+                    log('streamUrl set: ' + streamUrl, 'ok');
+                    updateState();
+                } else {
+                    log('Bridge "' + bridgeId + '" not found. Using first bridge.', 'err');
+                    if (data.bridges.length > 0) {
+                        bridge = data.bridges[0];
+                        bridgeId = bridge.id;
+                        streamUrl = bridge.stream_url || '';
+                        log('Using bridge id="' + bridgeId + '" url=' + streamUrl, 'ok');
+                        updateState();
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        function tapPing() {
+            if (!streamUrl) { log('streamUrl empty!', 'err'); return; }
+            log('--- PING ' + streamUrl + ' ---', 'info');
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', streamUrl, true);
+            xhr.timeout = 5000;
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 2) {
+                    log('HTTP headers received, status: ' + xhr.status, xhr.status === 200 ? 'ok' : 'err');
+                    xhr.abort(); // don't download the stream
+                }
+            };
+            xhr.onerror = function() { log('XHR error (network?)', 'err'); };
+            xhr.ontimeout = function() { log('XHR timeout', 'err'); };
+            xhr.send();
+        }
+
+        // initial state
+        updateState();
+        log('Page loaded. UA: ' + navigator.userAgent, 'info');
+        log('Tap FETCH API first, then PLAY', 'info');
+    </script>
+</body>
+</html>
