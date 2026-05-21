@@ -47,73 +47,68 @@ The iPod sits in the dock, Safari plays the stream, and the Yamaha's speakers an
 | `mqtt` | `eclipse-mosquitto:2` | Routes track metadata (title, artist, cover art) from shairport-sync to the controller |
 | `controller` | Built from this repo | C# .NET 10 web server — REST API + static web UI |
 
----
+## Quick Start (Portainer / Single Container)
 
-## Quick Start (Single Bridge)
+The easiest way to deploy Recastify is as a single-container deployment. This bundles shairport-sync, ffmpeg, Icecast, Mosquitto, and the controller into one prebuilt image. It is perfect for Portainer stacks or a simple Docker Compose setup.
 
-**Requires:** Docker and Docker Compose on a Linux host (or Raspberry Pi). The host must be on the same local network as your iPhone.
+### Docker Compose
+
+Save the following as `docker-compose.yml` (or paste it into your Portainer stack):
+
+```yaml
+services:
+  recastify:
+    image: ghcr.io/kiwiprojekt/recastify:main
+    platform: linux/amd64
+    container_name: recastify
+    restart: unless-stopped
+    network_mode: host
+    cap_add:
+      - SYS_NICE
+    command: ["all-in-one"]
+    environment:
+      # AirPlay receiver name (shows up in iOS/macOS AirPlay menu)
+      AIRPLAY_NAME: "Recastify"
+
+      # Icecast stream settings
+      ICECAST_PORT: "8100"
+      ICECAST_MOUNT: "/stream"
+      ICECAST_SOURCE_PASSWORD: "changeme"
+      ICECAST_ADMIN_PASSWORD: "changeme"
+      # Bridge ID must match the mount path (without leading slash)
+      BRIDGE_ID: "stream"
+
+      # Audio encoding
+      AUDIO_BITRATE: "320k"
+      # Path where config.yaml is persisted
+      CONFIG_PATH: "/data/config.yaml"
+    volumes:
+      - recastify-config:/data
+    logging:
+      options:
+        max-size: "200k"
+        max-file: "5"
+
+volumes:
+  recastify-config:
+```
+
+### Running the Stack
 
 ```sh
-git clone https://github.com/your-org/recastify.git
-cd recastify/src
-
-# Optional: set a strong source password
-export ICECAST_SOURCE_PASSWORD=mysecretpassword
-
 docker compose up -d
 ```
 
-### All-in-One (Portainer / Single Container)
+> [!NOTE]
+> Recastify uses `network_mode: host` so the AirPlay receiver is directly discoverable on your local network. Icecast listens on port **8100**, and the web UI is served on port **3000**.
 
-A single-container deployment that bundles shairport-sync, ffmpeg, Icecast, Mosquitto, and the controller into one image. Good for Portainer stacks or simple setups.
+### How to Use
 
-```sh
-docker compose -f docker-compose.portainer.yml up -d
-```
+1. **AirPlay Source:** Open Spotify (or any audio app) on your modern iPhone/iPad/Mac. Tap the AirPlay icon and select **Recastify**.
+2. **Receiver:** Open `http://<server-ip>:3000` in Safari on your old docked iPod/iPhone.
+3. **Play:** Tap **Listen** on the bridge card.
 
-Uses `network_mode: host` so the AirPlay receiver is directly discoverable. Icecast listens on port **8100**, the web UI on **3000**.
-
-Then on your iPhone:
-1. Open Spotify (or any app).
-2. Tap the AirPlay icon and select **Recastify**.
-3. Open `http://<server-ip>:3000` on the iPod Touch in Safari.
-4. Tap **Listen** on the bridge card.
-
-Add to Home Screen in Safari for a full-screen experience.
-
----
-
-## Multi-Bridge Setup
-
-Run multiple named AirPlay receivers (e.g. Living Room, Kitchen, Workout) each on its own Icecast mount, all managed from one controller.
-
-```sh
-docker compose -f docker-compose.multi.yml up -d
-```
-
-Or configure via `config.yaml`:
-
-```yaml
-icecast:
-  host: icecast
-  port: 8000
-  source_password: "changeme"
-
-bridges:
-  - name: "Living Room"
-    mount: "/living-room"
-    ip: "192.168.1.101"
-    bitrate: "320k"
-    enabled: true
-
-  - name: "Kitchen"
-    mount: "/kitchen"
-    ip: "192.168.1.102"
-    bitrate: "256k"
-    enabled: true
-```
-
-Each bridge gets a separate IP address (via ipvlan networking) so it appears as a distinct AirPlay device on the network.
+*Tip: Use **Add to Home Screen** in Safari for a full-screen, native-app-like experience.*
 
 ---
 
