@@ -213,7 +213,7 @@ public static class BridgesApi
                 config.SaveToFile(configPath);
             }
             catch { }
-            return Results.Ok(new { disable_stream_proxy = config.Config.WebUi.DisableStreamProxy });
+            return Results.Json(request, AppJsonContext.Default.AppConfigUpdateRequest);
         });
     }
 }
