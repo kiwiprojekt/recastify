@@ -88,6 +88,7 @@
             audio.load();
             audio.src = streamUrl;
             audio.play();
+            startPolling();
             pollNowPlaying();
         }
 
@@ -96,6 +97,7 @@
             audio.src = '';
             audio.load();
             isPlaying = false;
+            stopPolling();
             btnStop.className = 'hidden';
             showHero('play');
             statusEl.textContent = 'Ready — ' + bridgeId;
@@ -136,8 +138,12 @@
                     bridgeId = bridge.id;
                 }
                 if (bridge) {
-                    // Use same-origin stream proxy instead of cross-origin Icecast URL
-                    streamUrl = '/api/bridges/' + encodeURIComponent(bridge.id) + '/stream';
+                    // Use same-origin stream proxy unless disabled in configuration
+                    if (data.disable_stream_proxy) {
+                        streamUrl = bridge.stream_url;
+                    } else {
+                        streamUrl = '/api/bridges/' + encodeURIComponent(bridge.id) + '/stream';
+                    }
                     statusEl.textContent = 'Ready — ' + bridgeId;
                     showHero('play');
                     startPolling();
@@ -188,6 +194,13 @@
         function startPolling() {
             if (pollTimer) return;
             pollTimer = setInterval(pollNowPlaying, 3000);
+        }
+
+        function stopPolling() {
+            if (pollTimer) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
         }
     </script>
 </body>

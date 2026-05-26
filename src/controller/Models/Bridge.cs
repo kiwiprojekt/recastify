@@ -14,7 +14,7 @@ public class Bridge
     public string Bitrate { get; set; } = "320k";
     public bool Enabled { get; set; } = true;
     public DateTime? LastStateChange { get; set; }
-    public NowPlaying? NowPlaying { get; set; }
+    public NowPlaying NowPlaying { get; set; } = new();
 
     [JsonIgnore]
     public byte[]? CoverArt { get; set; }
@@ -33,6 +33,7 @@ public partial class AppJsonContext : JsonSerializerContext { }
 public class BridgesResponse
 {
     public List<Bridge> Bridges { get; set; } = new();
+    public bool DisableStreamProxy { get; set; }
 }
 
 public class StatusHookRequest

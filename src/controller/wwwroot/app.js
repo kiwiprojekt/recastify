@@ -16,6 +16,7 @@ var POLL_INTERVAL = 2000;
 var REFRESH_INTERVAL = 5000;
 var MAX_OFFLINE_POLLS = 150;
 var pollCount = 0;
+var disableStreamProxy = false;
 
 // --- Bridge list rendering ---
 
@@ -26,6 +27,7 @@ function fetchBridges() {
         if (xhr.readyState !== 4 || xhr.status !== 200) return;
         var data;
         try { data = JSON.parse(xhr.responseText); } catch (e) { return; }
+        disableStreamProxy = !!data.disable_stream_proxy;
         renderBridges(data.bridges);
     };
     xhr.send();
@@ -66,7 +68,8 @@ function renderBridges(bridges) {
 
         html += '<div class="bridge-actions">';
         if (b.state !== 'offline') {
-            html += '<button class="' + btnClass + '" onclick="listenTo(\'' + escapeAttr(b.mount) + '\', \'' + escapeAttr(b.stream_url) + '\', \'' + escapeAttr(b.name) + '\')">' + btnText + '</button>';
+            var actualStreamUrl = disableStreamProxy ? b.stream_url : ('/api/bridges/' + encodeURIComponent(b.id) + '/stream');
+            html += '<button class="' + btnClass + '" onclick="listenTo(\'' + escapeAttr(b.mount) + '\', \'' + escapeAttr(actualStreamUrl) + '\', \'' + escapeAttr(b.name) + '\')">' + btnText + '</button>';
             html += '<a class="btn" style="background:#1a1a1a;border:1px solid #333;min-width:auto;padding:10px 14px;font-size:13px;color:#a0a0a0;text-decoration:none;" href="player.html?bridge=' + encodeURIComponent(b.id) + '">Player</a>';
         } else {
             html += '<button class="' + btnClass + '" disabled>' + btnText + '</button>';
@@ -100,6 +103,7 @@ function listenTo(mount, streamUrl, name) {
 }
 
 function onStreamLost() {
+    if (!currentMount) return;
     showNowPlaying(null, 'waiting');
     pollCount = 0;
     startPolling();
@@ -129,7 +133,8 @@ function startPolling() {
                 }
                 if (bridge && bridge.state === 'playing') {
                     stopPolling();
-                    audio.src = bridge.stream_url;
+                    var actualUrl = disableStreamProxy ? bridge.stream_url : ('/api/bridges/' + encodeURIComponent(bridge.id) + '/stream');
+                    audio.src = actualUrl;
                     audio.play();
                     showNowPlaying(bridge.name, 'playing');
                 }

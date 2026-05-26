@@ -25,23 +25,22 @@ public class MqttMetadataService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _client.ApplicationMessageReceivedAsync += OnMessageReceived;
-        _client.DisconnectedAsync += async e =>
-        {
-            _logger.LogWarning("MQTT disconnected. Reconnecting in 5s...");
-            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
-            await ConnectAsync(stoppingToken);
-        };
 
-        await ConnectAsync(stoppingToken);
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            if (!_client.IsConnected)
+            {
+                await ConnectAsync(stoppingToken);
+            }
 
-        // Keep alive until cancellation
-        try
-        {
-            await Task.Delay(Timeout.Infinite, stoppingToken);
-        }
-        catch (OperationCanceledException)
-        {
-            // Shutting down
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
         }
     }
 
@@ -83,8 +82,6 @@ public class MqttMetadataService : BackgroundService
 
         var bridge = _bridges.GetOrCreate(bridgeId);
 
-        if (bridge.NowPlaying == null)
-            bridge.NowPlaying = new NowPlaying();
 
         switch (field)
         {

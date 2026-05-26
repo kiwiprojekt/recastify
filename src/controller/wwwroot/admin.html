@@ -153,6 +153,59 @@
             font-size: 13px;
             color: var(--text-secondary);
         }
+        .deployment-notice {
+            background: rgba(255, 204, 0, 0.1);
+            border-left: 4px solid var(--accent-yellow);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .deployment-notice h3 {
+            color: var(--accent-yellow);
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .deployment-notice p {
+            color: var(--text-primary);
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+        .deployment-notice p:last-of-type {
+            margin-bottom: 0;
+        }
+        .docker-guide {
+            background: var(--card-bg);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .docker-guide h3 {
+            color: var(--accent-green);
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .docker-guide p {
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+        .docker-guide pre {
+            background: #000;
+            border: 1px solid #222;
+            border-radius: 6px;
+            padding: 12px;
+            overflow-x: auto;
+            margin-top: 8px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 12px;
+            color: #d4d4d4;
+        }
     </style>
 </head>
 <body>
@@ -166,6 +219,43 @@
 
         <div id="bridge-list">
             <!-- Populated by JS -->
+        </div>
+
+        <div class="deployment-notice">
+            <h3>⚠️ Deployment Notice: Multi-Bridge Provisioning</h3>
+            <p>Adding or updating a bridge in this registry writes its metadata to <code>config.yaml</code>, but <strong>does not automatically provision or start the matching Docker container</strong>.</p>
+            <p>For each registered bridge to go online and accept AirPlay connections, a corresponding Docker service must be defined and running in your Docker deployment stack.</p>
+            <button class="btn-sm btn-edit" id="btn-toggle-guide" style="margin-top: 10px; display: inline-block; width: auto;" onclick="toggleGuide()">Show Docker Compose Guide</button>
+        </div>
+
+        <div class="docker-guide hidden" id="docker-guide">
+            <h3>🛠️ Docker Compose Service Template</h3>
+            <p>Paste the following service template block into your <code>docker-compose.yml</code> file under the <code>services:</code> section. Remember to customize the placeholders for each bridge you deploy:</p>
+            <pre><code>  bridge-YOUR-BRIDGE-ID:
+    image: ghcr.io/kiwiprojekt/recastify:main
+    container_name: bridge-YOUR-BRIDGE-ID
+    restart: unless-stopped
+    depends_on:
+      - icecast
+      - mqtt
+    cap_add:
+      - SYS_NICE
+    networks:
+      airplay:
+        ipv4_address: YOUR-CONTAINER-IP
+    volumes:
+      - ./config/shairport-sync.conf.template:/opt/config/shairport-sync.conf.template:ro
+    environment:
+      AIRPLAY_NAME: "YOUR-AIRPLAY-NAME"
+      ICECAST_HOST: "icecast"
+      ICECAST_PORT: "8000"
+      ICECAST_SOURCE_PASSWORD: "YOUR-ICECAST-SOURCE-PASSWORD"
+      ICECAST_MOUNT: "YOUR-ICECAST-MOUNT"
+      AUDIO_BITRATE: "YOUR-BITRATE"
+      BRIDGE_ID: "YOUR-BRIDGE-ID"
+      CONTROLLER_URL: "controller:3000"
+      MQTT_HOST: "mqtt"</code></pre>
+            <p style="margin-top: 10px; font-size: 13px; color: var(--text-secondary);">After updating your compose stack file, deploy using <code>docker compose up -d</code> to launch the new AirPlay receiver container.</p>
         </div>
 
         <div id="icecast-status" class="icecast-status"></div>
@@ -367,6 +457,18 @@
             }).then(function() {
                 fetchBridges();
             });
+        }
+
+        function toggleGuide() {
+            var guide = document.getElementById('docker-guide');
+            var btn = document.getElementById('btn-toggle-guide');
+            if (guide.classList.contains('hidden')) {
+                guide.classList.remove('hidden');
+                btn.textContent = 'Hide Docker Compose Guide';
+            } else {
+                guide.classList.add('hidden');
+                btn.textContent = 'Show Docker Compose Guide';
+            }
         }
 
         // Initialize
