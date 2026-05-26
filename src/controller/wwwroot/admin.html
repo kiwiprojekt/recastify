@@ -7,22 +7,22 @@
     <link rel="stylesheet" href="style.css">
     <style>
         :root {
-            --bg-primary: #0a0a0c;
-            --card-bg: #16161a;
-            --modal-bg: #1c1c1e;
-            --text-primary: #f5f5f7;
-            --text-secondary: #86868b;
-            --accent-green: #34c759;
+            --bg-primary: #000000;
+            --card-bg: #000000;
+            --modal-bg: #0b0b0b;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --accent-green: #ff453a; /* Map coral-red to actions */
             --accent-yellow: #ffcc00;
-            --accent-red: #ff3b30;
-            --border-color: #2c2c2e;
-            --bg-hover: #222228;
+            --accent-red: #ff453a;
+            --border-color: #222222;
+            --bg-hover: #111111;
         }
 
         body {
             background: var(--bg-primary);
             color: var(--text-primary);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
             padding: 0;
             min-height: 100vh;
@@ -38,21 +38,24 @@
             justify-content: space-between;
             height: 48px;
             padding: 0 16px;
-            background: var(--card-bg);
+            background: #000000;
             border-bottom: 1px solid var(--border-color);
         }
 
         .admin-header h1 {
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 800;
+            letter-spacing: -0.5px;
             margin: 0;
         }
 
         .admin-header a {
             color: var(--accent-green);
             text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             transition: opacity 0.2s ease;
         }
 
@@ -71,7 +74,7 @@
         .global-settings-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 0px;
             padding: 16px;
             margin-bottom: 16px;
             display: flex;
@@ -86,8 +89,10 @@
 
         .settings-info h3 {
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             margin: 0 0 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .settings-info p {
@@ -115,10 +120,10 @@
             position: absolute;
             cursor: pointer;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #2c2c2e;
-            transition: .25s ease;
-            border-radius: 28px;
-            border: 1px solid var(--border-color);
+            background-color: #111111;
+            transition: .2s ease;
+            border-radius: 0px;
+            border: 1px solid #333333;
         }
 
         .slider:before {
@@ -128,10 +133,9 @@
             width: 20px;
             left: 3px;
             bottom: 3px;
-            background-color: #fff;
-            transition: .25s ease;
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            background-color: #ffffff;
+            transition: .2s ease;
+            border-radius: 0px;
         }
 
         input:checked + .slider {
@@ -148,11 +152,13 @@
             width: 100%;
             min-height: 44px;
             background: var(--accent-green);
-            color: #000;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 600;
+            color: #ffffff;
+            border: 1px solid var(--accent-green);
+            border-radius: 0px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             font-family: inherit;
             cursor: pointer;
             margin-bottom: 16px;
@@ -161,12 +167,14 @@
 
         .btn-add:active {
             opacity: 0.8;
+            background: #e03b32;
+            border-color: #e03b32;
         }
 
         .admin-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 0px;
             padding: 16px;
             margin-bottom: 12px;
         }
@@ -179,59 +187,53 @@
         }
 
         .bridge-status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
+            width: 8px;
+            height: 8px;
+            border-radius: 0px;
             flex-shrink: 0;
         }
 
         .bridge-status-dot.playing {
             background: var(--accent-green);
-            box-shadow: 0 0 6px var(--accent-green);
         }
 
-        .bridge-status-dot.paused {
+        .bridge-status-dot.paused, .bridge-status-dot.starting {
             background: var(--accent-yellow);
-            box-shadow: 0 0 6px var(--accent-yellow);
-        }
-
-        .bridge-status-dot.starting {
-            background: var(--accent-yellow);
-            box-shadow: 0 0 6px var(--accent-yellow);
         }
 
         .bridge-status-dot.offline {
-            background: #555;
+            background: #444444;
         }
 
         .admin-card-header .bridge-name {
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             flex: 1;
         }
 
         .bridge-state-label {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             padding: 2px 6px;
-            border-radius: 4px;
+            border: 1px solid currentColor;
+            border-radius: 0px;
         }
 
         .bridge-state-label.playing {
             color: var(--accent-green);
-            background: rgba(52, 199, 89, 0.12);
+            background: transparent;
         }
 
         .bridge-state-label.paused, .bridge-state-label.starting {
             color: var(--accent-yellow);
-            background: rgba(255, 204, 0, 0.12);
+            background: transparent;
         }
 
         .bridge-state-label.offline {
             color: var(--text-secondary);
-            background: rgba(134, 134, 139, 0.12);
+            background: transparent;
         }
 
         .admin-card-detail {
@@ -243,8 +245,8 @@
         .admin-card-detail code {
             background: rgba(255,255,255,0.05);
             padding: 2px 4px;
-            border-radius: 4px;
-            font-family: SFMono-Regular, Consolas, monospace;
+            border-radius: 0px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         }
 
         .admin-card-actions {
@@ -255,45 +257,82 @@
         }
 
         .btn-sm {
-            min-height: 32px;
-            padding: 4px 12px;
-            font-size: 13px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
+            min-height: 38px;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid var(--border-color);
+            border-radius: 0px;
             font-family: inherit;
             cursor: pointer;
-            transition: opacity 0.2s ease;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
             -webkit-tap-highlight-color: transparent;
         }
 
         .btn-sm:active {
-            opacity: 0.7;
+            opacity: 0.8;
         }
 
-        .btn-edit { background: #2c2c2e; color: var(--text-primary); border: 1px solid var(--border-color); }
-        .btn-start { background: var(--accent-green); color: #000; }
-        .btn-stop { background: var(--accent-yellow); color: #000; }
-        .btn-delete { background: var(--accent-red); color: #fff; }
+        .btn-edit { 
+            background: #000000; 
+            color: var(--text-primary); 
+            border: 1px solid var(--border-color); 
+        }
+        .btn-edit:active {
+            background: #111111;
+        }
+        
+        .btn-start { 
+            background: var(--accent-green); 
+            color: #ffffff; 
+            border: 1px solid var(--accent-green);
+        }
+        .btn-start:active {
+            background: #e03b32;
+            border-color: #e03b32;
+        }
+
+        .btn-stop { 
+            background: var(--accent-yellow); 
+            color: #000000; 
+            border: 1px solid var(--accent-yellow);
+        }
+        .btn-stop:active {
+            background: #e6b800;
+            border-color: #e6b800;
+        }
+
+        .btn-delete { 
+            background: #000000; 
+            color: var(--accent-green); 
+            border: 1px solid var(--accent-green); 
+        }
+        .btn-delete:active {
+            background: var(--accent-green);
+            color: #ffffff;
+        }
 
         /* Warning & Deploy Guides */
         .deployment-notice {
-            background: rgba(255, 204, 0, 0.08);
+            background: #080808;
+            border: 1px solid var(--border-color);
             border-left: 4px solid var(--accent-yellow);
-            border-radius: 8px;
+            border-radius: 0px;
             padding: 16px;
             margin-top: 24px;
             margin-bottom: 12px;
             font-size: 13px;
-            border: 1px solid rgba(255, 204, 0, 0.15);
-            border-left-width: 4px;
         }
 
         .deployment-notice h3 {
             color: var(--accent-yellow);
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             margin: 0 0 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .deployment-notice p {
@@ -307,9 +346,10 @@
         }
 
         .docker-guide {
-            background: var(--card-bg);
+            background: #080808;
             border: 1px solid var(--border-color);
-            border-radius: 10px;
+            border-left: 4px solid var(--accent-green);
+            border-radius: 0px;
             padding: 16px;
             margin-bottom: 12px;
             font-size: 13px;
@@ -318,8 +358,10 @@
         .docker-guide h3 {
             color: var(--accent-green);
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             margin: 0 0 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .docker-guide p {
@@ -329,9 +371,9 @@
         }
 
         .docker-guide pre {
-            background: #000;
-            border: 1px solid #222;
-            border-radius: 6px;
+            background: #000000;
+            border: 1px solid var(--border-color);
+            border-radius: 0px;
             padding: 12px;
             overflow-x: auto;
             margin: 8px 0 0;
@@ -343,12 +385,15 @@
         .icecast-status {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 0px;
             padding: 12px 16px;
             margin-bottom: 12px;
             font-size: 12px;
             color: var(--text-secondary);
             text-align: center;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         /* Modal Overlay and Premium Card dialogs */
@@ -356,7 +401,7 @@
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(8px);
             z-index: 100;
             align-items: center;
@@ -371,18 +416,21 @@
         .modal {
             background: var(--modal-bg);
             border: 1px solid var(--border-color);
-            border-radius: 14px;
+            border-radius: 0px;
             padding: 20px;
             width: 100%;
             max-width: 380px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
             box-sizing: border-box;
         }
 
         .modal h2 {
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 15px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             margin: 0 0 16px;
+            border-bottom: 1px solid #1a1a1a;
+            padding-bottom: 10px;
         }
 
         .form-group {
@@ -391,19 +439,21 @@
 
         .form-group label {
             display: block;
-            font-size: 12px;
+            font-size: 10px;
             color: var(--text-secondary);
-            margin-bottom: 4px;
-            font-weight: 500;
+            margin-bottom: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .form-group input, .form-group select {
             width: 100%;
-            min-height: 38px;
-            padding: 8px 12px;
-            background: #2c2c2e;
+            min-height: 44px;
+            padding: 10px 12px;
+            background: #000000;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 0px;
             color: var(--text-primary);
             font-size: 14px;
             font-family: inherit;
@@ -423,19 +473,35 @@
 
         .modal-actions button {
             flex: 1;
-            min-height: 40px;
+            min-height: 44px;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
+            border-radius: 0px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             font-family: inherit;
             cursor: pointer;
             transition: opacity 0.2s ease;
         }
 
-        .btn-cancel { background: #2c2c2e; color: var(--text-primary); border: 1px solid var(--border-color); }
-        .btn-save { background: var(--accent-green); color: #000; }
-    </style>
+        .btn-cancel { 
+            background: #000000; 
+            color: var(--text-primary); 
+            border: 1px solid var(--border-color) !important; 
+        }
+        .btn-cancel:active {
+            background: #111111;
+        }
+
+        .btn-save { 
+            background: var(--accent-green); 
+            color: #ffffff; 
+            border: 1px solid var(--accent-green) !important; 
+        }
+        .btn-save:active {
+            background: #e03b32;
+        }
 </head>
 <body>
     <header class="admin-header">
