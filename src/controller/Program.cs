@@ -31,6 +31,13 @@ else
     configService.LoadFromEnvironment();
 }
 
+// Environment variable overrides file-based config if present
+var envDisableProxy = Environment.GetEnvironmentVariable("DISABLE_STREAM_PROXY");
+if (!string.IsNullOrEmpty(envDisableProxy))
+{
+    configService.Config.WebUi.DisableStreamProxy = envDisableProxy.ToLowerInvariant() == "true";
+}
+
 builder.Services.AddSingleton(configService);
 
 var bridgeManager = new BridgeManager(

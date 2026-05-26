@@ -14,7 +14,7 @@ public class Bridge
     public string Bitrate { get; set; } = "320k";
     public bool Enabled { get; set; } = true;
     public DateTime? LastStateChange { get; set; }
-    public NowPlaying? NowPlaying { get; set; }
+    public NowPlaying NowPlaying { get; set; } = new();
 
     [JsonIgnore]
     public byte[]? CoverArt { get; set; }
@@ -27,12 +27,14 @@ public class Bridge
 [JsonSerializable(typeof(HealthResponse))]
 [JsonSerializable(typeof(NowPlaying))]
 [JsonSerializable(typeof(BridgeCreateRequest))]
+[JsonSerializable(typeof(AppConfigUpdateRequest))]
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower)]
 public partial class AppJsonContext : JsonSerializerContext { }
 
 public class BridgesResponse
 {
     public List<Bridge> Bridges { get; set; } = new();
+    public bool DisableStreamProxy { get; set; }
 }
 
 public class StatusHookRequest
@@ -54,4 +56,9 @@ public class BridgeCreateRequest
     public string? Ip { get; set; }
     public string? Bitrate { get; set; }
     public bool? Enabled { get; set; }
+}
+
+public class AppConfigUpdateRequest
+{
+    public bool DisableStreamProxy { get; set; }
 }

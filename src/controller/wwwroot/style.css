@@ -1,3 +1,6 @@
+/* Recastify — Swiss Minimalist Stylesheet */
+/* Optimized for legacy iOS (iPhone 4/4S) Safari PWA & modern browsers */
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -5,39 +8,54 @@
 }
 
 body {
-    background: #0a0a0a;
+    background: #000000;
     color: #ffffff;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
     -webkit-text-size-adjust: 100%;
     min-height: 100vh;
     padding-bottom: 0;
 }
 
+/* Header */
 .header {
     display: flex;
     align-items: center;
-    height: 44px;
+    justify-content: space-between;
+    height: 48px;
     padding: 0 16px;
-    background: #1a1a1a;
-    border-bottom: 1px solid #333;
+    background: #000000;
+    border-bottom: 1px solid #1a1a1a;
 }
 
 .header h1 {
-    font-size: 17px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
 }
 
-/* Bridge list */
+.header a {
+    color: #ff453a;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Bridge list grid layout */
 .bridge-list {
-    padding: 12px 16px;
-    padding-bottom: 80px;
+    padding: 16px;
+    padding-bottom: 90px;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .bridge-card {
-    background: #1a1a1a;
-    border-radius: 12px;
+    background: #000000;
+    border: 1px solid #222222;
+    border-radius: 0px;
     padding: 16px;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
     display: flex;
     flex-direction: column;
     min-height: 44px;
@@ -45,7 +63,7 @@ body {
 }
 
 .bridge-card > * + * {
-    margin-top: 8px;
+    margin-top: 10px;
 }
 
 .bridge-card-header {
@@ -54,16 +72,15 @@ body {
 }
 
 .bridge-status-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 0px; /* Sharp Swiss geometric elements */
     flex-shrink: 0;
     margin-right: 10px;
 }
 
 .bridge-status-dot.playing {
-    background: #34c759;
-    box-shadow: 0 0 6px #34c759;
+    background: #ff453a;
 }
 
 .bridge-status-dot.paused {
@@ -71,99 +88,111 @@ body {
 }
 
 .bridge-status-dot.offline {
-    background: #555555;
+    background: #444444;
 }
 
 .bridge-name {
-    font-size: 17px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 700;
     flex: 1;
     margin-right: 10px;
 }
 
 .bridge-state-label {
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 10px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 2px 8px;
-    border-radius: 4px;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border: 1px solid currentColor;
+    border-radius: 0px;
 }
 
 .bridge-state-label.playing {
-    color: #34c759;
-    background: rgba(52, 199, 89, 0.15);
+    color: #ff453a;
 }
 
 .bridge-state-label.paused {
     color: #ffcc00;
-    background: rgba(255, 204, 0, 0.15);
 }
 
 .bridge-state-label.offline {
-    color: #555555;
-    background: rgba(85, 85, 85, 0.15);
+    color: #666666;
 }
 
 .bridge-subtitle {
-    font-size: 14px;
-    color: #a0a0a0;
+    font-size: 13px;
+    color: #888888;
+    line-height: 1.4;
 }
 
 .bridge-actions {
     display: flex;
-    margin-top: 4px;
+    margin-top: 8px;
+    gap: 8px;
 }
 
-.bridge-actions > * + * {
-    margin-left: 8px;
-}
-
+/* Swiss Buttons */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     min-height: 44px;
-    min-width: 44px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
+    padding: 10px 16px;
+    border: 1px solid #222222;
+    border-radius: 0px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     font-family: inherit;
     cursor: pointer;
+    background: #000000;
+    color: #ffffff;
     -webkit-tap-highlight-color: transparent;
 }
 
+.btn:active {
+    background: #111111;
+}
+
 .btn-listen {
-    background: #34c759;
-    color: #000;
+    background: #ff453a;
+    color: #ffffff;
+    border-color: #ff453a;
     flex: 1;
 }
 
 .btn-listen:active {
-    opacity: 0.7;
+    background: #e03b32;
+    border-color: #e03b32;
 }
 
 .btn-listen.paused-btn {
     background: #ffcc00;
-    color: #000;
+    color: #000000;
+    border-color: #ffcc00;
+}
+
+.btn-listen.paused-btn:active {
+    background: #e6b800;
 }
 
 .btn-listen.offline-btn {
-    background: #555555;
-    color: #ffffff;
+    background: #111111;
+    color: #666666;
+    border-color: #222222;
 }
 
-/* Now playing bar */
+/* Now playing bar at bottom */
 .now-playing-bar {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 60px;
-    background: #1a1a1a;
-    border-top: 1px solid #333;
+    height: 64px;
+    background: #0b0b0b;
+    border-top: 1px solid #1a1a1a;
     display: flex;
     align-items: center;
     padding: 0 16px;
@@ -186,38 +215,49 @@ body {
 }
 
 .np-status {
-    font-size: 12px;
-    color: #a0a0a0;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #ff453a;
+    font-weight: 700;
 }
 
 .np-name {
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
+    color: #ffffff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .np-stop {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: 38px;
     padding: 8px 16px;
-    background: transparent;
-    border: 1px solid #555555;
-    border-radius: 8px;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 600;
-    font-family: inherit;
+    background: #ffffff;
+    border: none;
+    border-radius: 0px;
+    color: #000000;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
 }
 
-/* Waiting animation */
+.np-stop:active {
+    background: #cccccc;
+}
+
+/* Waiting animation pulse */
 @-webkit-keyframes pulse {
-    0%, 100% { opacity: 0.4; }
+    0%, 100% { opacity: 0.3; }
     50% { opacity: 1; }
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 0.4; }
+    0%, 100% { opacity: 0.3; }
     50% { opacity: 1; }
 }
 
@@ -228,7 +268,8 @@ body {
 .waiting-dots span {
     -webkit-animation: pulse 1.4s infinite;
             animation: pulse 1.4s infinite;
-    font-size: 18px;
+    font-size: 14px;
+    color: #ffcc00;
 }
 
 .waiting-dots span:nth-child(2) {
@@ -245,19 +286,20 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 44px;
-    padding: 8px 24px;
-    background: #34c759;
-    color: #000;
+    min-height: 28px;
+    padding: 4px 12px;
+    background: #ffcc00;
+    color: #000000;
     border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    font-family: inherit;
+    border-radius: 0px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
 }
 
 .btn-retry:active {
-    opacity: 0.7;
+    background: #e6b800;
 }

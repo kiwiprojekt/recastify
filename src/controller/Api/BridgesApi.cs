@@ -1,3 +1,4 @@
+using System.Linq;
 using Recastify.Models;
 using Recastify.Services;
 
@@ -5,22 +6,43 @@ namespace Recastify.Api;
 
 public static class BridgesApi
 {
+    private static readonly HttpClient _httpClient = new() { Timeout = Timeout.InfiniteTimeSpan };
+
     public static void MapBridgesApi(this WebApplication app)
     {
-        app.MapGet("/api/bridges", (HttpContext http, BridgeManager bridges) =>
+        app.MapGet("/api/bridges", (HttpContext http, BridgeManager bridges, ConfigService config) =>
         {
             var requestHost = http.Request.Host.Host;
             var all = bridges.GetAll();
-            // Rewrite StreamUrl to use the actual request host so browsers can reach Icecast
-            foreach (var b in all)
-            {
-                if (b.StreamUrl != null)
+            
+            var responseBridges = all.Select(b => {
+                var rewrittenStreamUrl = b.StreamUrl;
+                if (rewrittenStreamUrl != null)
                 {
-                    var uri = new Uri(b.StreamUrl);
-                    b.StreamUrl = $"{uri.Scheme}://{requestHost}:{uri.Port}{uri.AbsolutePath}";
+                    var uri = new Uri(rewrittenStreamUrl);
+                    rewrittenStreamUrl = $"{uri.Scheme}://{requestHost}:{uri.Port}{uri.AbsolutePath}";
                 }
-            }
-            var response = new BridgesResponse { Bridges = all };
+                return new Bridge
+                {
+                    Id = b.Id,
+                    Name = b.Name,
+                    Mount = b.Mount,
+                    StreamUrl = rewrittenStreamUrl,
+                    State = b.State,
+                    Listeners = b.Listeners,
+                    Ip = b.Ip,
+                    Bitrate = b.Bitrate,
+                    Enabled = b.Enabled,
+                    LastStateChange = b.LastStateChange,
+                    NowPlaying = b.NowPlaying
+                };
+            }).ToList();
+
+            var response = new BridgesResponse 
+            { 
+                Bridges = responseBridges,
+                DisableStreamProxy = config.Config.WebUi.DisableStreamProxy
+            };
             return Results.Json(response, AppJsonContext.Default.BridgesResponse);
         });
 
@@ -118,8 +140,15 @@ public static class BridgesApi
         // Proxy the Icecast stream through the controller so the <audio> element
         // can load it from the same origin. iOS standalone (PWA) mode silently
         // mutes cross-origin audio even though an audio session is created.
-        app.MapGet("/api/bridges/{id}/stream", async (string id, HttpContext http, BridgeManager bridges) =>
+        app.MapGet("/api/bridges/{id}/stream", async (string id, HttpContext http, BridgeManager bridges, ConfigService config) =>
         {
+            if (config.Config.WebUi.DisableStreamProxy)
+            {
+                http.Response.StatusCode = 400;
+                await http.Response.WriteAsync("Stream proxy is disabled in configuration.");
+                return;
+            }
+
             var bridge = bridges.Get(id);
             if (bridge?.StreamUrl == null)
             {
@@ -127,27 +156,26 @@ public static class BridgesApi
                 return;
             }
 
-            using var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
-            using var upstream = await client.GetAsync(bridge.StreamUrl, HttpCompletionOption.ResponseHeadersRead);
-            if (!upstream.IsSuccessStatusCode)
-            {
-                http.Response.StatusCode = (int)upstream.StatusCode;
-                return;
-            }
-
-            http.Response.StatusCode = 200;
-            http.Response.ContentType = upstream.Content.Headers.ContentType?.ToString() ?? "audio/mpeg";
-            http.Response.Headers["Cache-Control"] = "no-cache";
-
-            using var source = await upstream.Content.ReadAsStreamAsync();
-            var buffer = new byte[8192];
-            int read;
             try
             {
-                while ((read = await source.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                using var upstream = await _httpClient.GetAsync(bridge.StreamUrl, HttpCompletionOption.ResponseHeadersRead, http.RequestAborted);
+                if (!upstream.IsSuccessStatusCode)
                 {
-                    await http.Response.Body.WriteAsync(buffer, 0, read);
-                    await http.Response.Body.FlushAsync();
+                    http.Response.StatusCode = (int)upstream.StatusCode;
+                    return;
+                }
+
+                http.Response.StatusCode = 200;
+                http.Response.ContentType = upstream.Content.Headers.ContentType?.ToString() ?? "audio/mpeg";
+                http.Response.Headers["Cache-Control"] = "no-cache";
+
+                using var source = await upstream.Content.ReadAsStreamAsync(http.RequestAborted);
+                var buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = await source.ReadAsync(buffer.AsMemory(0, buffer.Length), http.RequestAborted)) > 0)
+                {
+                    await http.Response.Body.WriteAsync(buffer.AsMemory(0, bytesRead), http.RequestAborted);
+                    await http.Response.Body.FlushAsync(http.RequestAborted);
                 }
             }
             catch (OperationCanceledException) { }
@@ -180,6 +208,18 @@ public static class BridgesApi
             {
                 return Results.StatusCode(502);
             }
+        });
+
+        app.MapPost("/api/config", (AppConfigUpdateRequest request, ConfigService config) =>
+        {
+            config.Config.WebUi.DisableStreamProxy = request.DisableStreamProxy;
+            var configPath = Environment.GetEnvironmentVariable("CONFIG_PATH") ?? "/app/config.yaml";
+            try
+            {
+                config.SaveToFile(configPath);
+            }
+            catch { }
+            return Results.Json(request, AppJsonContext.Default.AppConfigUpdateRequest);
         });
     }
 }

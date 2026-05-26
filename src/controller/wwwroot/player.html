@@ -2,54 +2,400 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Recastify">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <title>Recastify Player</title>
     <style>
-        body { background:#000; color:#fff; font-family:-apple-system,Helvetica,Arial,sans-serif; padding:16px; margin:0;
-               display:-webkit-box; display:flex; -webkit-box-orient:vertical; flex-direction:column;
-               min-height:100vh; box-sizing:border-box; }
-        button { display:block; width:100%; padding:16px; margin:0; font-size:18px; font-weight:bold;
-                 border:none; border-radius:8px; box-sizing:border-box; }
-        .hidden { display:none !important; }
-        #hero { width:200px; height:200px; margin:32px auto 16px; position:relative; }
-        #cover { width:200px; height:200px; border-radius:8px; background:#222; display:block; object-fit:cover; }
-        #btn-fetch { background:#333; color:#fff; width:200px; height:200px; border-radius:8px; font-size:20px; }
-        #btn-play { background:#0f0; color:#000; width:200px; height:200px; border-radius:8px; font-size:22px; }
-        #meta { text-align:center; margin:0 0 auto; }
-        #status { color:#888; font-size:14px; margin:8px 0; text-align:center; }
-        #np-title { font-size:18px; font-weight:bold; margin:0 0 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        #np-artist { font-size:15px; color:#aaa; margin:0 0 2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        #np-album { font-size:13px; color:#666; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        #btn-stop { background:#333; color:#f55; padding:14px; border-radius:8px; margin:16px 0 8px; }
+        /* Base styles with iOS 7-9 Flexbox compatibility */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            background: #000000; 
+            color: #ffffff; 
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+            padding: 24px 16px;
+            margin: 0;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-flex-direction: column;
+            flex-direction: column;
+            -webkit-box-pack: justify;
+            -webkit-justify-content: space-between;
+            justify-content: space-between;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 320px;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-flex-direction: column;
+            flex-direction: column;
+            -webkit-box-pack: justify;
+            -webkit-justify-content: space-between;
+            justify-content: space-between;
+            height: 100vh;
+            padding: 8px 0;
+        }
+
+        /* Header */
+        header {
+            width: 100%;
+            border-bottom: 1px solid #1a1a1a;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-box-pack: justify;
+            -webkit-justify-content: space-between;
+            justify-content: space-between;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #ffffff;
+        }
+        
+        .device-badge {
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            background: #111;
+            color: #888;
+            padding: 2px 6px;
+            border: 1px solid #222;
+        }
+
+        /* Hero Area (Connecting / Play / Cover) */
+        #hero {
+            width: 200px;
+            height: 200px;
+            margin: auto;
+            position: relative;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-box-pack: center;
+            -webkit-justify-content: center;
+            justify-content: center;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            align-items: center;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Cover Art styling */
+        #cover {
+            width: 200px;
+            height: 200px;
+            border-radius: 0;
+            background: #0d0d0d;
+            display: block;
+            object-fit: cover;
+            border: 1px solid #222;
+        }
+
+        /* Action Buttons replacing Cover */
+        #btn-fetch, #btn-play {
+            width: 200px;
+            height: 200px;
+            border: 1px solid #222;
+            background: #000;
+            color: #ffffff;
+            cursor: pointer;
+            outline: none;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-flex-direction: column;
+            flex-direction: column;
+            -webkit-box-pack: center;
+            -webkit-justify-content: center;
+            justify-content: center;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            align-items: center;
+            -webkit-tap-highlight-color: transparent;
+            font-family: inherit;
+        }
+        
+        #btn-fetch:active, #btn-play:active {
+            background: #111111;
+            border-color: #ff453a;
+        }
+
+        #btn-fetch span, #btn-play span {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        #btn-play span {
+            color: #ff453a;
+        }
+
+        .btn-icon {
+            margin-bottom: 12px;
+            width: 28px;
+            height: 28px;
+            fill: currentColor;
+        }
+        
+        #btn-play .btn-icon {
+            fill: #ff453a;
+        }
+
+        /* Metadata & Controls Panel */
+        .info-panel {
+            width: 100%;
+            border-top: 1px solid #1a1a1a;
+            padding-top: 16px;
+            margin-bottom: 8px;
+        }
+
+        #meta {
+            text-align: left;
+            min-height: 80px;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-flex-direction: column;
+            flex-direction: column;
+            -webkit-box-pack: start;
+            -webkit-justify-content: flex-start;
+            justify-content: flex-start;
+        }
+
+        #status {
+            color: #ff453a;
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        #np-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 2px;
+            color: #ffffff;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            letter-spacing: -0.5px;
+        }
+
+        #np-artist {
+            font-size: 15px;
+            color: #888888;
+            font-weight: 400;
+            margin-bottom: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #np-album {
+            font-size: 12px;
+            color: #444444;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Disconnect Button styling */
+        #btn-stop {
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            padding: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 16px;
+            cursor: pointer;
+            width: 100%;
+            -webkit-tap-highlight-color: transparent;
+            font-family: inherit;
+        }
+
+        #btn-stop:active {
+            background: #cccccc;
+        }
+
+        /* Footer */
+        footer {
+            width: 100%;
+            border-top: 1px solid #1a1a1a;
+            padding-top: 12px;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-box-pack: justify;
+            -webkit-justify-content: space-between;
+            justify-content: space-between;
+            font-size: 9px;
+            color: #444444;
+        }
+
+        /* Fullscreen cover styling */
+        .cover-fullscreen #cover {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 1 !important;
+            opacity: 1 !important;
+            border: none !important;
+            border-radius: 0 !important;
+        }
+
+        .cover-fullscreen #header-el,
+        .cover-fullscreen .info-panel,
+        .cover-fullscreen footer {
+            position: relative !important;
+            z-index: 10 !important;
+        }
+
+        .cover-fullscreen .info-panel {
+            background: rgba(0, 0, 0, 0.85) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            padding: 16px !important;
+        }
+
+        /* Minimal UI adjustments when in full background mode */
+        .cover-fullscreen #status {
+            display: none !important;
+        }
+
+        .cover-fullscreen #btn-stop {
+            display: none !important;
+        }
+
+        .cover-fullscreen #meta {
+            min-height: auto !important;
+        }
     </style>
 </head>
 <body>
-    <div id="hero">
-        <button id="btn-fetch" onclick="tapFetch()">CONNECT</button>
-        <button id="btn-play" class="hidden" onclick="tapPlay()">PLAY</button>
-        <img id="cover" class="hidden" src="" alt="">
+    <video id="no-sleep-video" playsinline webkit-playsinline loop muted style="position:absolute;top:0;left:0;width:1px;height:1px;opacity:0.01;pointer-events:none;z-index:-9999;"></video>
+    
+    <div id="container-el" class="container">
+        <header id="header-el">
+            <div class="logo">RECASTIFY.</div>
+            <div class="device-badge">iPod PWA</div>
+        </header>
+
+        <div id="hero">
+            <button id="btn-fetch" onclick="tapFetch()">
+                <svg class="btn-icon" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.53c-.26-.81-1-1.4-1.9-1.4h-1v-3c0-.55-.45-1-1-1h-6v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.4z"/>
+                </svg>
+                <span>CONNECT</span>
+            </button>
+            <button id="btn-play" class="hidden" onclick="tapPlay()">
+                <svg class="btn-icon" style="margin-left: 2px;" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+                <span>PLAY STREAM</span>
+            </button>
+            <img id="cover" class="hidden" src="" alt="Artwork" onclick="toggleCoverFullscreen()" style="cursor: pointer;">
+        </div>
+
+        <div class="info-panel">
+            <div id="meta">
+                <div id="status">OFFLINE</div>
+                <p id="np-title"></p>
+                <p id="np-artist"></p>
+                <p id="np-album"></p>
+            </div>
+            
+            <button id="btn-stop" class="hidden" onclick="tapStop()">DISCONNECT</button>
+        </div>
+
+        <footer>
+            <span>SWISS-DESIGN ED.</span>
+            <span>SYSTEM READY</span>
+        </footer>
     </div>
-    <div id="meta">
-        <div id="status">Tap Connect to start.</div>
-        <p id="np-title"></p>
-        <p id="np-artist"></p>
-        <p id="np-album"></p>
-    </div>
-    <button id="btn-stop" class="hidden" onclick="tapStop()">DISCONNECT</button>
 
     <audio id="audio" webkit-playsinline playsinline></audio>
 
     <script>
+        var isCoverFullscreen = false;
+        function toggleCoverFullscreen() {
+            var container = document.getElementById('container-el');
+            isCoverFullscreen = !isCoverFullscreen;
+            console.log('toggleCoverFullscreen called. Fullscreen active:', isCoverFullscreen);
+            if (container) {
+                if (isCoverFullscreen) {
+                    container.className = 'container cover-fullscreen';
+                } else {
+                    container.className = 'container';
+                }
+            }
+        }
+
         var audio = document.getElementById('audio');
         var btnFetch = document.getElementById('btn-fetch');
         var btnPlay = document.getElementById('btn-play');
         var btnStop = document.getElementById('btn-stop');
         var coverEl = document.getElementById('cover');
         var statusEl = document.getElementById('status');
+
+        // Robust programmatic click binding
+        if (coverEl) {
+            coverEl.onclick = function(e) {
+                if (e) {
+                    if (typeof e.stopPropagation === 'function') {
+                        e.stopPropagation();
+                    } else {
+                        e.cancelBubble = true; // ES5 legacy compatibility
+                    }
+                }
+                toggleCoverFullscreen();
+            };
+        }
+
+        // Global tap-to-minimize when in fullscreen mode (clicking background)
+        document.onclick = function(e) {
+            if (isCoverFullscreen) {
+                var target = e ? e.target : (window.event ? window.event.srcElement : null);
+                if (target) {
+                    // Do not minimize if clicking the disconnect stop button
+                    if (target === btnStop) {
+                        return;
+                    }
+                }
+                toggleCoverFullscreen();
+            }
+        };
+
         var titleEl = document.getElementById('np-title');
         var artistEl = document.getElementById('np-artist');
         var albumEl = document.getElementById('np-album');
@@ -58,7 +404,8 @@
         var lastAlbum = '';
         var pollTimer = null;
         var isPlaying = false;
-        var placeholderCover = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect fill="#222" width="200" height="200"/><polygon fill="#555" points="80,50 80,150 150,100"/></svg>');
+        var placeholderCover = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect fill="#0a0a0a" width="200" height="200"/><polygon fill="#222" points="80,50 80,150 150,100"/></svg>');
+        var NO_SLEEP_VIDEO_SRC = 'data:video/mp4;base64,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';
 
         // parse ?bridge=xxx
         var qs = location.search.replace('?','').split('&');
@@ -71,23 +418,38 @@
             btnFetch.className = which === 'fetch' ? '' : 'hidden';
             btnPlay.className = which === 'play' ? '' : 'hidden';
             coverEl.className = which === 'cover' ? '' : 'hidden';
+
+            var headerEl = document.getElementById('header-el');
+            if (headerEl) {
+                headerEl.className = which === 'cover' ? 'hidden' : '';
+            }
         }
 
         function tapPlay() {
             if (!streamUrl) { return; }
-            // Show cover + disconnect immediately, don't wait for 'playing' event
-            statusEl.textContent = 'Buffering...';
+            statusEl.textContent = 'BUFFERING';
             isPlaying = true;
             showHero('cover');
             coverEl.src = placeholderCover;
             lastAlbum = '';
             btnStop.className = '';
-            // Use same-origin proxy to avoid cross-origin audio muting in iOS PWA
+
+            var noSleepVideo = document.getElementById('no-sleep-video');
+            if (noSleepVideo) {
+                noSleepVideo.src = NO_SLEEP_VIDEO_SRC;
+                try {
+                    noSleepVideo.play();
+                } catch(e) {
+                    console.log('Wake lock video play failed:', e);
+                }
+            }
+
             audio.pause();
             audio.src = '';
             audio.load();
             audio.src = streamUrl;
             audio.play();
+            startPolling();
             pollNowPlaying();
         }
 
@@ -96,37 +458,62 @@
             audio.src = '';
             audio.load();
             isPlaying = false;
+            stopPolling();
+
+            // Reset fullscreen cover state
+            var container = document.getElementById('container-el');
+            if (container) container.className = 'container';
+            isCoverFullscreen = false;
+
+            var noSleepVideo = document.getElementById('no-sleep-video');
+            if (noSleepVideo) {
+                noSleepVideo.pause();
+                noSleepVideo.src = '';
+            }
+
             btnStop.className = 'hidden';
             showHero('play');
-            statusEl.textContent = 'Ready — ' + bridgeId;
+            statusEl.textContent = 'READY / ' + bridgeId.toUpperCase();
             titleEl.textContent = '';
             artistEl.textContent = '';
             albumEl.textContent = '';
         }
 
         audio.addEventListener('playing', function() {
-            statusEl.textContent = 'Playing';
+            statusEl.textContent = 'PLAYING';
         });
         audio.addEventListener('waiting', function() {
-            if (isPlaying) statusEl.textContent = 'Buffering...';
+            if (isPlaying) statusEl.textContent = 'BUFFERING';
         });
         audio.addEventListener('error', function() {
             if (!isPlaying) return;
-            statusEl.textContent = 'Playback error';
+            statusEl.textContent = 'PLAYBACK ERROR';
             isPlaying = false;
+
+            // Reset fullscreen cover state
+            var container = document.getElementById('container-el');
+            if (container) container.className = 'container';
+            isCoverFullscreen = false;
+
+            var noSleepVideo = document.getElementById('no-sleep-video');
+            if (noSleepVideo) {
+                noSleepVideo.pause();
+                noSleepVideo.src = '';
+            }
+
             btnStop.className = 'hidden';
             showHero('play');
         });
 
         function tapFetch() {
-            statusEl.textContent = 'Connecting...';
+            statusEl.textContent = 'CONNECTING';
             var xhr = new XMLHttpRequest();
             xhr.open('GET', '/api/bridges', true);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState !== 4) return;
-                if (xhr.status !== 200) { statusEl.textContent = 'Connection failed'; return; }
+                if (xhr.status !== 200) { statusEl.textContent = 'CONNECTION FAILED'; return; }
                 var data;
-                try { data = JSON.parse(xhr.responseText); } catch(e) { statusEl.textContent = 'Bad response'; return; }
+                try { data = JSON.parse(xhr.responseText); } catch(e) { statusEl.textContent = 'BAD RESPONSE'; return; }
                 var bridge = null;
                 for (var i = 0; i < data.bridges.length; i++) {
                     if (data.bridges[i].id === bridgeId) bridge = data.bridges[i];
@@ -136,13 +523,16 @@
                     bridgeId = bridge.id;
                 }
                 if (bridge) {
-                    // Use same-origin stream proxy instead of cross-origin Icecast URL
-                    streamUrl = '/api/bridges/' + encodeURIComponent(bridge.id) + '/stream';
-                    statusEl.textContent = 'Ready — ' + bridgeId;
+                    if (data.disable_stream_proxy) {
+                        streamUrl = bridge.stream_url;
+                    } else {
+                        streamUrl = '/api/bridges/' + encodeURIComponent(bridge.id) + '/stream';
+                    }
+                    statusEl.textContent = 'READY / ' + bridgeId.toUpperCase();
                     showHero('play');
                     startPolling();
                 } else {
-                    statusEl.textContent = 'No bridges found';
+                    statusEl.textContent = 'NO BRIDGES';
                 }
             };
             xhr.send();
@@ -188,6 +578,13 @@
         function startPolling() {
             if (pollTimer) return;
             pollTimer = setInterval(pollNowPlaying, 3000);
+        }
+
+        function stopPolling() {
+            if (pollTimer) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
         }
     </script>
 </body>

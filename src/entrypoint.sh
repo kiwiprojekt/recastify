@@ -72,9 +72,14 @@ start_ffmpeg() {
         while true; do
             echo "[bridge] Starting ffmpeg -> icecast://${ICECAST_HOST}:${ICECAST_PORT}${ICECAST_MOUNT}"
             ffmpeg -hide_banner -loglevel warning \
+                -fflags nobuffer \
+                -flags +low_delay \
+                -probesize 32 \
+                -analyzeduration 0 \
                 -f s16le -ar 44100 -ac 2 \
                 -i "$PIPE_PATH" \
                 -c:a libmp3lame -b:a "$AUDIO_BITRATE" \
+                -flush_packets 1 \
                 -f mp3 \
                 -content_type audio/mpeg \
                 "icecast://source:${ICECAST_SOURCE_PASSWORD}@${ICECAST_HOST}:${ICECAST_PORT}${ICECAST_MOUNT}" \
