@@ -170,7 +170,13 @@ public static class BridgesApi
                 http.Response.Headers["Cache-Control"] = "no-cache";
 
                 using var source = await upstream.Content.ReadAsStreamAsync(http.RequestAborted);
-                await source.CopyToAsync(http.Response.Body, http.RequestAborted);
+                var buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = await source.ReadAsync(buffer.AsMemory(0, buffer.Length), http.RequestAborted)) > 0)
+                {
+                    await http.Response.Body.WriteAsync(buffer.AsMemory(0, bytesRead), http.RequestAborted);
+                    await http.Response.Body.FlushAsync(http.RequestAborted);
+                }
             }
             catch (OperationCanceledException) { }
             catch (IOException) { }

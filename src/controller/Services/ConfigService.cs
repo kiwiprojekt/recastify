@@ -38,7 +38,7 @@ public class ConfigService
         var name = Environment.GetEnvironmentVariable("AIRPLAY_NAME") ?? "Recastify";
         var mount = Environment.GetEnvironmentVariable("ICECAST_MOUNT") ?? "/stream";
         var bitrate = Environment.GetEnvironmentVariable("AUDIO_BITRATE") ?? "320k";
-        var disableProxy = (Environment.GetEnvironmentVariable("DISABLE_STREAM_PROXY") ?? "false").ToLowerInvariant() == "true";
+        var disableProxy = (Environment.GetEnvironmentVariable("DISABLE_STREAM_PROXY") ?? "true").ToLowerInvariant() == "true";
 
         Config.Bridges.Clear();
         Config.Bridges.Add(new BridgeConfig
@@ -108,7 +108,7 @@ public class IcecastConfig
 public class WebUiConfig
 {
     public int Port { get; set; } = 3000;
-    public bool DisableStreamProxy { get; set; } = false;
+    public bool DisableStreamProxy { get; set; } = true;
 }
 
 public class NetworkConfig
