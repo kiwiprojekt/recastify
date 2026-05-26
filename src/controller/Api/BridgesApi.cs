@@ -203,5 +203,17 @@ public static class BridgesApi
                 return Results.StatusCode(502);
             }
         });
+
+        app.MapPost("/api/config", (AppConfigUpdateRequest request, ConfigService config) =>
+        {
+            config.Config.WebUi.DisableStreamProxy = request.DisableStreamProxy;
+            var configPath = Environment.GetEnvironmentVariable("CONFIG_PATH") ?? "/app/config.yaml";
+            try
+            {
+                config.SaveToFile(configPath);
+            }
+            catch { }
+            return Results.Ok(new { disable_stream_proxy = config.Config.WebUi.DisableStreamProxy });
+        });
     }
 }

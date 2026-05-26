@@ -27,6 +27,7 @@ public class Bridge
 [JsonSerializable(typeof(HealthResponse))]
 [JsonSerializable(typeof(NowPlaying))]
 [JsonSerializable(typeof(BridgeCreateRequest))]
+[JsonSerializable(typeof(AppConfigUpdateRequest))]
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower)]
 public partial class AppJsonContext : JsonSerializerContext { }
 
@@ -55,4 +56,9 @@ public class BridgeCreateRequest
     public string? Ip { get; set; }
     public string? Bitrate { get; set; }
     public bool? Enabled { get; set; }
+}
+
+public class AppConfigUpdateRequest
+{
+    public bool DisableStreamProxy { get; set; }
 }

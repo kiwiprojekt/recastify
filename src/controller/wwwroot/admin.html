@@ -6,70 +6,143 @@
     <title>Recastify — Admin</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --card-bg: #16161a;
+            --modal-bg: #1c1c1e;
+            --text-primary: #f5f5f7;
+            --text-secondary: #86868b;
+            --accent-green: #34c759;
+            --accent-yellow: #ffcc00;
+            --accent-red: #ff3b30;
+            --border-color: #2c2c2e;
+            --bg-hover: #222228;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
         .admin-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 44px;
+            height: 48px;
             padding: 0 16px;
             background: var(--card-bg);
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid var(--border-color);
         }
+
         .admin-header h1 {
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 600;
+            margin: 0;
         }
+
         .admin-header a {
             color: var(--accent-green);
             text-decoration: none;
             font-size: 14px;
+            font-weight: 500;
+            transition: opacity 0.2s ease;
         }
+
+        .admin-header a:hover {
+            opacity: 0.8;
+        }
+
         .admin-body {
-            padding: 12px 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 16px;
             padding-bottom: 120px;
         }
-        .admin-card {
+
+        /* Settings Card & Toggle switch */
+        .global-settings-card {
             background: var(--card-bg);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 16px;
-            margin-bottom: 12px;
-        }
-        .admin-card-header {
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
+            justify-content: space-between;
+            gap: 16px;
         }
-        .admin-card-header .bridge-name {
+
+        .settings-info {
             flex: 1;
         }
-        .admin-card-detail {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
-        }
-        .admin-card-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-            flex-wrap: wrap;
-        }
-        .btn-sm {
-            min-height: 36px;
-            min-width: 36px;
-            padding: 6px 14px;
-            font-size: 13px;
-            border: none;
-            border-radius: 8px;
+
+        .settings-info h3 {
+            font-size: 14px;
             font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
+            margin: 0 0 4px;
         }
-        .btn-edit { background: #2c2c2e; color: var(--text-primary); }
-        .btn-start { background: var(--accent-green); color: #000; }
-        .btn-stop { background: var(--accent-yellow); color: #000; }
-        .btn-delete { background: #ff3b30; color: #fff; }
+
+        .settings-info p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #2c2c2e;
+            transition: .25s ease;
+            border-radius: 28px;
+            border: 1px solid var(--border-color);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #fff;
+            transition: .25s ease;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
         .btn-add {
             display: block;
             width: 100%;
@@ -82,130 +155,286 @@
             font-weight: 600;
             font-family: inherit;
             cursor: pointer;
-            margin-bottom: 12px;
-        }
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal-overlay.active {
-            display: flex;
-        }
-        .modal {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            width: 100%;
-            max-width: 400px;
-        }
-        .modal h2 {
-            font-size: 17px;
             margin-bottom: 16px;
+            transition: opacity 0.2s ease;
         }
-        .form-group {
+
+        .btn-add:active {
+            opacity: 0.8;
+        }
+
+        .admin-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
             margin-bottom: 12px;
         }
-        .form-group label {
-            display: block;
+
+        .admin-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .bridge-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .bridge-status-dot.playing {
+            background: var(--accent-green);
+            box-shadow: 0 0 6px var(--accent-green);
+        }
+
+        .bridge-status-dot.paused {
+            background: var(--accent-yellow);
+            box-shadow: 0 0 6px var(--accent-yellow);
+        }
+
+        .bridge-status-dot.starting {
+            background: var(--accent-yellow);
+            box-shadow: 0 0 6px var(--accent-yellow);
+        }
+
+        .bridge-status-dot.offline {
+            background: #555;
+        }
+
+        .admin-card-header .bridge-name {
+            font-size: 16px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .bridge-state-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .bridge-state-label.playing {
+            color: var(--accent-green);
+            background: rgba(52, 199, 89, 0.12);
+        }
+
+        .bridge-state-label.paused, .bridge-state-label.starting {
+            color: var(--accent-yellow);
+            background: rgba(255, 204, 0, 0.12);
+        }
+
+        .bridge-state-label.offline {
+            color: var(--text-secondary);
+            background: rgba(134, 134, 139, 0.12);
+        }
+
+        .admin-card-detail {
             font-size: 13px;
             color: var(--text-secondary);
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
-        .form-group input, .form-group select {
-            width: 100%;
-            min-height: 36px;
-            padding: 8px 12px;
-            background: #2c2c2e;
-            border: 1px solid #3a3a3c;
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 15px;
-            font-family: inherit;
+
+        .admin-card-detail code {
+            background: rgba(255,255,255,0.05);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: SFMono-Regular, Consolas, monospace;
         }
-        .modal-actions {
+
+        .admin-card-actions {
             display: flex;
             gap: 8px;
-            margin-top: 16px;
+            margin-top: 14px;
+            flex-wrap: wrap;
         }
-        .modal-actions button {
-            flex: 1;
-            min-height: 44px;
+
+        .btn-sm {
+            min-height: 32px;
+            padding: 4px 12px;
+            font-size: 13px;
             border: none;
-            border-radius: 10px;
-            font-size: 15px;
+            border-radius: 6px;
             font-weight: 600;
             font-family: inherit;
             cursor: pointer;
+            transition: opacity 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
         }
-        .btn-cancel { background: #2c2c2e; color: var(--text-primary); }
-        .btn-save { background: var(--accent-green); color: #000; }
-        .icecast-status {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 12px 16px;
-            margin-bottom: 12px;
-            font-size: 13px;
-            color: var(--text-secondary);
+
+        .btn-sm:active {
+            opacity: 0.7;
         }
+
+        .btn-edit { background: #2c2c2e; color: var(--text-primary); border: 1px solid var(--border-color); }
+        .btn-start { background: var(--accent-green); color: #000; }
+        .btn-stop { background: var(--accent-yellow); color: #000; }
+        .btn-delete { background: var(--accent-red); color: #fff; }
+
+        /* Warning & Deploy Guides */
         .deployment-notice {
-            background: rgba(255, 204, 0, 0.1);
+            background: rgba(255, 204, 0, 0.08);
             border-left: 4px solid var(--accent-yellow);
             border-radius: 8px;
             padding: 16px;
-            margin-top: 20px;
+            margin-top: 24px;
             margin-bottom: 12px;
-            font-size: 14px;
+            font-size: 13px;
+            border: 1px solid rgba(255, 204, 0, 0.15);
+            border-left-width: 4px;
         }
+
         .deployment-notice h3 {
             color: var(--accent-yellow);
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
-            margin-bottom: 6px;
+            margin: 0 0 6px;
         }
+
         .deployment-notice p {
             color: var(--text-primary);
-            line-height: 1.4;
-            margin-bottom: 8px;
+            line-height: 1.45;
+            margin: 0 0 8px;
         }
+
         .deployment-notice p:last-of-type {
             margin-bottom: 0;
         }
+
         .docker-guide {
             background: var(--card-bg);
-            border: 1px solid #333;
-            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
             padding: 16px;
             margin-bottom: 12px;
-            font-size: 14px;
+            font-size: 13px;
         }
+
         .docker-guide h3 {
             color: var(--accent-green);
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin: 0 0 8px;
         }
+
         .docker-guide p {
             color: var(--text-secondary);
-            line-height: 1.4;
-            margin-bottom: 8px;
+            line-height: 1.45;
+            margin: 0 0 8px;
         }
+
         .docker-guide pre {
             background: #000;
             border: 1px solid #222;
             border-radius: 6px;
             padding: 12px;
             overflow-x: auto;
-            margin-top: 8px;
+            margin: 8px 0 0;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-size: 12px;
+            font-size: 11px;
             color: #d4d4d4;
         }
+
+        .icecast-status {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        /* Modal Overlay and Premium Card dialogs */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--modal-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            box-sizing: border-box;
+        }
+
+        .modal h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 16px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            min-height: 38px;
+            padding: 8px 12px;
+            background: #2c2c2e;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-green);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            min-height: 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .btn-cancel { background: #2c2c2e; color: var(--text-primary); border: 1px solid var(--border-color); }
+        .btn-save { background: var(--accent-green); color: #000; }
     </style>
 </head>
 <body>
@@ -215,6 +444,18 @@
     </header>
 
     <div class="admin-body">
+        <!-- Low Latency switch toggle -->
+        <div class="global-settings-card">
+            <div class="settings-info">
+                <h3>Low-Latency Streaming</h3>
+                <p>Bypasses C# proxy (reduces latency, but might mute standalone iOS PWAs).</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="toggle-proxy" onchange="toggleStreamProxy(this.checked)">
+                <span class="slider"></span>
+            </label>
+        </div>
+
         <button class="btn-add" id="btn-add" type="button">+ Add Bridge</button>
 
         <div id="bridge-list">
@@ -223,14 +464,14 @@
 
         <div class="deployment-notice">
             <h3>⚠️ Deployment Notice: Multi-Bridge Provisioning</h3>
-            <p>Adding or updating a bridge in this registry writes its metadata to <code>config.yaml</code>, but <strong>does not automatically provision or start the matching Docker container</strong>.</p>
-            <p>For each registered bridge to go online and accept AirPlay connections, a corresponding Docker service must be defined and running in your Docker deployment stack.</p>
+            <p>Registering a bridge in this UI writes its parameters to <code>config.yaml</code>, but <strong>does not automatically launch or configure the matching Docker container</strong>.</p>
+            <p>For each registered bridge to go online and advertise over AirPlay, a corresponding Docker service definition must be active in your deployment stack.</p>
             <button class="btn-sm btn-edit" id="btn-toggle-guide" style="margin-top: 10px; display: inline-block; width: auto;" onclick="toggleGuide()">Show Docker Compose Guide</button>
         </div>
 
         <div class="docker-guide hidden" id="docker-guide">
             <h3>🛠️ Docker Compose Service Template</h3>
-            <p>Paste the following service template block into your <code>docker-compose.yml</code> file under the <code>services:</code> section. Remember to customize the placeholders for each bridge you deploy:</p>
+            <p>Insert the following service blocks under the <code>services:</code> section of your <code>docker-compose.yml</code> file. Adjust environment parameters to match each bridge definition:</p>
             <pre><code>  bridge-YOUR-BRIDGE-ID:
     image: ghcr.io/kiwiprojekt/recastify:main
     container_name: bridge-YOUR-BRIDGE-ID
@@ -255,12 +496,13 @@
       BRIDGE_ID: "YOUR-BRIDGE-ID"
       CONTROLLER_URL: "controller:3000"
       MQTT_HOST: "mqtt"</code></pre>
-            <p style="margin-top: 10px; font-size: 13px; color: var(--text-secondary);">After updating your compose stack file, deploy using <code>docker compose up -d</code> to launch the new AirPlay receiver container.</p>
+            <p style="margin-top: 10px; font-size: 12px; color: var(--text-secondary);">After updating your compose file, deploy the changes using <code>docker compose up -d</code> to provision the receiver containers.</p>
         </div>
 
         <div id="icecast-status" class="icecast-status"></div>
     </div>
 
+    <!-- Modal dialogue box -->
     <div class="modal-overlay" id="modal-overlay">
         <div class="modal">
             <h2 id="modal-title">Add Bridge</h2>
@@ -314,6 +556,11 @@
                 .then(function(data) {
                     renderBridges(data.bridges);
                     renderIcecastStatus(data.bridges);
+                    // Sync the toggle switch state
+                    var toggleProxy = document.getElementById('toggle-proxy');
+                    if (toggleProxy) {
+                        toggleProxy.checked = !!data.disable_stream_proxy;
+                    }
                 })
                 .catch(function() {});
         }
@@ -330,8 +577,8 @@
                 html += '<span class="bridge-name">' + escapeHtml(b.name) + '</span>';
                 html += '<span class="bridge-state-label ' + stateClass + '">' + stateLabel + '</span>';
                 html += '</div>';
-                html += '<div class="admin-card-detail">Mount: ' + escapeHtml(b.mount) + '</div>';
-                if (b.ip) html += '<div class="admin-card-detail">IP: ' + escapeHtml(b.ip) + '</div>';
+                html += '<div class="admin-card-detail">Mount: <code>' + escapeHtml(b.mount) + '</code></div>';
+                if (b.ip) html += '<div class="admin-card-detail">IP: <code>' + escapeHtml(b.ip) + '</code></div>';
                 html += '<div class="admin-card-detail">Bitrate: ' + escapeHtml(b.bitrate) + ' &middot; Listeners: ' + b.listeners + '</div>';
                 html += '<div class="admin-card-actions">';
                 html += '<button class="btn-sm btn-edit" onclick="editBridge(\'' + escapeAttr(b.id) + '\')">Edit</button>';
@@ -367,7 +614,7 @@
             return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         }
 
-        // Modal
+        // Modal Controls
         function openModal(title, bridge) {
             modalTitle.textContent = title;
             fName.value = bridge ? bridge.name : '';
@@ -469,6 +716,23 @@
                 guide.classList.add('hidden');
                 btn.textContent = 'Show Docker Compose Guide';
             }
+        }
+
+        function toggleStreamProxy(disable) {
+            fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ disable_stream_proxy: disable })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                // Successfully toggled stream proxy in config
+            })
+            .catch(function() {
+                var toggleProxy = document.getElementById('toggle-proxy');
+                if (toggleProxy) toggleProxy.checked = !disable;
+                alert('Failed to update streaming configuration.');
+            });
         }
 
         // Initialize
